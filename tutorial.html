@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
+    <!-- Nome na aba do navegador -->
+    <title>Nutrição em um olhar</title>
+    <!-- Import o D3 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Import o Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Folha de estilos -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+
+
+
+
+    <!-- Importar scripts do Firebase -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhS7zhyXHLNGLpQ9saPZZg8Aol8jWaGPA",
+            authDomain: "nutricao-em-um-olhar.firebaseapp.com",
+            projectId: "nutricao-em-um-olhar",
+            storageBucket: "nutricao-em-um-olhar.appspot.com",
+            messagingSenderId: "101019466395",
+            appId: "1:101019466395:web:d22a7fda84e635e544243e",
+            measurementId: "G-MNX0D151MB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        const db = getFirestore(app);
+
+        // Imprime o usuário atual (salvo no local storage)
+        var user_uid = localStorage.getItem('user');
+
+        // Recupera os dados do usuário
+        const docRef = doc(db, "user", user_uid);
+        getDoc(docRef)
+            .then((docSnap) => {
+                // Define os valores dos campos dos dados do usuário
+                document.getElementById("m").value = docSnap.data()["weight"];
+
+            })
+            .catch((error) => {
+                console.error("Erro ao recuperar os dados:", error);
+            });
+    </script>
+</head>
+
+<header>
+    <!-- Título da página -->
+    <div class="row justify-content-center principal_container">
+        <div class="col">
+            <!-- Logo da página -->
+        </div>
+        <div class="col-md-auto">
+            <div class="row justify-content-center">
+                <!-- Título -->
+                <h1>NUTRIÇÃO EM UM OLHAR</h1>
+            </div>
+        </div>
+        <div class="col">
+            <div class="row justify-content-center align-items-center">
+                <!-- Drop down menu com a opção que leva a página de atualização de dados (objetives) -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="bi bi-justify custom-toggler-icon"></i>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bi bi-justify"></i>
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="app.html">App</a>
+                                    <!-- <a class="dropdown-item" href="objetives.html">Atualizar dados</a> -->
+                                    <a class="dropdown-item" href="tutorial.html">Tutorial</a>
+                                    <a class="dropdown-item" href="about.html">Sobre</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<body>
+    <!-- Como utilizar a ferramenta -->
+    <div class="principal_container">
+        <h2>Como utilizar a ferramenta</h2>
+        <ul id="como_utilizar">
+            <li>Começamos informando alguns dados iniciais do usuário (caso não forem preenchidos, serão usados os dados
+                padrão):</li>
+            <ul>
+                <li>
+                    Peso: o peso do usuário em quilogramas (kg);
+                </li>
+                <li>
+                    Número de refeições: o número de refeições que o usuário faz por dia (por padrão, 3);
+                </li>
+                <li>
+                    Quantidade de proteínas por quilograma: a quantidade de proteínas em gramas que o usuário deseja
+                    consumir por Kg de massa corporal em um dia (por padrão, 1.0g);
+                </li>
+                <li>
+                    Proporção de proteína: a proporção de calorias com a fonte sendo proteína que o usuário deseja
+                    consumir em um dia (por padrão, 25%);
+                </li>
+                <li>
+                    Proporção de carboidrato: a proporção de calorias com a fonte sendo carboidrato que o usuário deseja
+                    consumir em um dia (por padrão, 50%);
+                </li>
+                <li>
+                    Proporção de lipídios (gordura): a proporção de calorias com a fonte sendo lipídeos que o usuário
+                    deseja consumir em um dia (por padrão, 25%),
+                </li>
+                <li>
+                    Tolerância: margem de erro na alimentação (Tolerância igual a 10% significa que a alimentação pode
+                    ter até 10% a mais ou a menos do que o desejado).
+                </li>
+            </ul>
+            <li>Com isso, podemos selecionar até 3 alimentos para uma refeição, os quais podem ser filtrados por:</li>
+            <ul>
+                <li>Texto: você pode inserir um texto para filtrar a lista com apenas os alimentos que contém aquela
+                    porção de texto (como uma palavra em específico, por exemplo),</li>
+                <li>Gráfico de violino (na esquerda): você pode selecionar uma porção do gráfico de violino (com a
+                    função de "brush") para filtrar a lista
+                    com apenas os alimentos que contém aquela porção de macronutrientes (a intersecção dos filtros).
+                </li>
+            </ul>
+            <li>Após escolher um alimento, devemos escolher qual dos alimentos estamos escolhendo (1, 2 ou 3), para
+                isso, utilizamos o dropdown ao lado do que seleciona o alimento;</li>
+            <li>Após escolher um alimento e qual sua "posição" no prato, devemos clicar no botão de confirmar para
+                atualizar os dados com a escolha (após isso podemos reiniciar o processo e escolher os outros alimentos,
+                até formar o prato com até 3 alimentos),</li>
+            <li>Após selecionar todos os alimentos do prato, é necessário indicar a quantidade de cada um deles que será
+                consumida na
+                refeição
+                (por padrão, 50g), para isso, temos um slider que nos permite variar a quantidade desejada.</li>
+        </ul>
+        <p>Com isso, conseguimos ver pelo gráfico de barras (à direita), a partir das cores, se a refeição está
+            balanceada ou não, sendo: verde para balanceada, vermelho para
+            excesso do macronutriente e amerelo para falta do macronutriente na refeição.</p>
+        <p>Vale lembrar que alguns valores padrão foram definidos, com base nas opiniões de alguns nutricionistas que
+            foram indicados em fontes já citadas anteriormente. Esses valores podem ser alterados pelo usuário, caso ele
+            tenha outra recomendação de alimentação (dado que isso pode variar de acordo com o objetivo do usuário
+            também).</p>
+        <br>
+        <p>Observação: a página foi desenvolvida para ficar bem dimensionada para uma tela (de notebook) com 15.6",
+            podendo ficar com algo mal alinhado em outras dimensões (infelizmente a página não é bem responsiva). Se
+            algo estiver fora do lugar, recomendamos utilizar a função de zoom out do navegador (atalho "CTRL -" para
+            grande parte dos navegadores).
+        </p>
+
+    </div>
+
+</body>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
+    <!-- Nome na aba do navegador -->
+    <title>Nutrição em um olhar</title>
+    <!-- Import o D3 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Import o Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Folha de estilos -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+
+
+
+
+    <!-- Importar scripts do Firebase -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhS7zhyXHLNGLpQ9saPZZg8Aol8jWaGPA",
+            authDomain: "nutricao-em-um-olhar.firebaseapp.com",
+            projectId: "nutricao-em-um-olhar",
+            storageBucket: "nutricao-em-um-olhar.appspot.com",
+            messagingSenderId: "101019466395",
+            appId: "1:101019466395:web:d22a7fda84e635e544243e",
+            measurementId: "G-MNX0D151MB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        const db = getFirestore(app);
+
+        // Imprime o usuário atual (salvo no local storage)
+        var user_uid = localStorage.getItem('user');
+
+        // Recupera os dados do usuário
+        const docRef = doc(db, "user", user_uid);
+        getDoc(docRef)
+            .then((docSnap) => {
+                // Define os valores dos campos dos dados do usuário
+                document.getElementById("m").value = docSnap.data()["weight"];
+
+            })
+            .catch((error) => {
+                console.error("Erro ao recuperar os dados:", error);
+            });
+    </script>
+</head>
+
+<header>
+
+    <!-- Título da página -->
+    <div class="row justify-content-center principal_container">
+        <div class="col">
+            <!-- Logo da página -->
+        </div>
+        <div class="col-md-auto">
+            <div class="row justify-content-center">
+                <!-- Título -->
+                <h1>NUTRIÇÃO EM UM OLHAR</h1>
+            </div>
+        </div>
+        <div class="col">
+            <div class="row justify-content-center align-items-center">
+                <!-- Drop down menu com a opção que leva a página de atualização de dados (objetives) -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="bi bi-justify custom-toggler-icon"></i>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bi bi-justify"></i>
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="app.html">App</a>
+                                    <!-- <a class="dropdown-item" href="objetives.html">Atualizar dados</a> -->
+                                    <a class="dropdown-item" href="tutorial.html">Tutorial</a>
+                                    <a class="dropdown-item" href="about.html">Sobre</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<body>
+    <!-- Parágrafo de introdução -->
+    <div class="principal_container">
+        <h2>Sobre a ferramenta</h2>
+        <p class="introducao">O objetivo central dessa ferramenta é possibilitar ao visualizador um maior
+            entendimento sobre os alimentos (em especial, os macronutrientes)
+            e compreender se suas escolhas alimentares estão balanceadas.</p>
+
+        <p class="introducao">A partir de informações de peso, número de refeições por dia (por padrão,
+            definido como 3), quantidade de proteínas por quilograma (por padrão, 1.0g) e as proporções
+            desejadas de macronutrientes (por padrão, estão definidas como 25% para gorduras, 25% para
+            proteínas e 50% para carboidratos, recomendações da nutricionista Isolda Vasconcelos em
+            <a
+                href="https://www.boasaude.com.br/nutricao/15404/qual-a-proporcao-de-proteina-e-carboidratos-ideal-nas-refeicoes.html">
+                Saúde e Nutrição
+            </a>).
+            Essas proporções podem ser alteradas pelo usuário a depender do seu objetivo. Por exemplo, pessoas
+            sedentárias consomem, em geral, menos proteínas do que um atleta. Para entender melhor em qual grupo
+            você se encaixa, recomendamos ler algumas referências, como em <a
+                href="https://www.atletis.com.br/quantidade-proteina-dia#:~:text=Para%20adultos%20sedent%C3%A1rios%2C%20a%20quantidade,g%20a%20cada%20quilo%20no%20m%C3%A1ximo.">
+                "Descubra a quantidade ideal de proteína por dia" - Atletis Blog.
+            </a>
+        </p>
+
+        <p class="introducao"> Os dados necessários foram obtidos através do Kaggle, em
+            <a href="https://www.kaggle.com/datasets/ispangler/composio-nutricional-de-alimentos-taco">
+                Composição nutricional de alimentos - TACO
+            </a>. Nele temos dados sobre a composição dos principais alimentos consumidos no Brasil, baseado em um plano
+            de amostragem que garante valores representativos, com análises realizadas por laboratórios com
+            capacidade analítica comprovada.
+        </p>
+
+    </div>
+</body>

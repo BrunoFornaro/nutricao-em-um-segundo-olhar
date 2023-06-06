@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Exemplo de dropdown com D3</title>
+</head>
+
+<body>
+    <h1>Exemplo de dropdown com D3</h1>
+
+    <input type="text" id="filtro" placeholder="Filtrar opções">
+
+    <select id="selFood"></select>
+
+    <div id="nome-selecionado"></div>
+
+    <svg id="meuGrafico"></svg>
+
+    <br>
+    <p id="textp">Proteína:</p>
+    <div id="sliderp"></div>
+    <br>
+    <br>
+    <p id="textc">Carboidrato:</p>
+    <div id="sliderc"></div>
+    <br>
+    <br>
+    <p id="textl">Godura:</p>
+    <div id="sliderl"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        d3.csv("archive/taco-db-nutrientes.csv").then(function (data) {
+            var minValp = 0;
+            var maxValp = 100;
+            var filteredData;
+
+            $(function () {
+                var slider = $("#sliderp").slider({
+                    range: true,
+                    min: 0,
+                    max: 100,
+                    values: [0, 100],
+                    slide: function (event, ui) {
+                        minValp = ui.values[0];
+                        maxValp = ui.values[1];
+                        updateFilteredData();
+                    }
+                });
+
+                $("#min-value").text(slider.slider("values", 0));
+                $("#max-value").text(slider.slider("values", 1));
+            });
+            var minValc = 0;
+            var maxValc = 100;
+            var filteredData;
+
+            $(function () {
+                var slider = $("#sliderc").slider({
+                    range: true,
+                    min: 0,
+                    max: 100,
+                    values: [0, 100],
+                    slide: function (event, ui) {
+                        minValc = ui.values[0];
+                        maxValc = ui.values[1];
+                        updateFilteredData();
+                    }
+                });
+
+                $("#min-value").text(slider.slider("values", 0));
+                $("#max-value").text(slider.slider("values", 1));
+            });
+            var minVall = 0;
+            var maxVall = 100;
+            var filteredData;
+
+            $(function () {
+                var slider = $("#sliderl").slider({
+                    range: true,
+                    min: 0,
+                    max: 100,
+                    values: [0, 100],
+                    slide: function (event, ui) {
+                        minVall = ui.values[0];
+                        maxVall = ui.values[1];
+                        updateFilteredData();
+                    }
+                });
+
+                $("#min-value").text(slider.slider("values", 0));
+                $("#max-value").text(slider.slider("values", 1));
+            });
+
+            function updateFilteredData() {
+                filteredData = data.filter(d => d[`Proteína (g)`] >= minValp && d[`Proteína (g)`] <= maxValp && d[`Carboidrato (g)`] >= minValc && d[`Carboidrato (g)`] <= maxValc && d[`Lipídeos (g)`] >= minVall && d[`Lipídeos (g)`] <= maxVall);
+                console.log(filteredData);
+
+                var dropdown = d3.select("#selFood");
+
+                var nomes = filteredData.map(function (d, i) {
+                    return d.Nome;
+                });
+
+                dropdown.selectAll("option")
+                    .data(nomes)
+                    .enter()
+                    .append("option")
+                    .text(function (d) { return d; });
+
+                var nomeSelecionado = d3.select("#nome-selecionado");
+
+                dropdown.selectAll(".opcao-dropdown")
+                    .on("mousemove", function () {
+                        var nomeSelecionadoValor = d3.select(this).property("value");
+                        nomeSelecionado.text("Nome selecionado: " + nomeSelecionadoValor);
+                    })
+                    .on("mouseout", function () {
+                        nomeSelecionado.text("");
+                    });
+                
+                var textoFiltro = d3.select("#filtro").property("value");
+
+                var opcoesFiltradas = nomes.filter(function (d) {
+                    return d.toLowerCase().includes(textoFiltro.toLowerCase());
+                });
+
+                var opcoes = dropdown.selectAll("option")
+                    .data(opcoesFiltradas, function (d) { return d; });
+
+                opcoes.enter()
+                    .append("option")
+                    .text(function (d) { return d; })
+                    .merge(opcoes)
+                    .attr("value", function (d) { return d; });
+
+                opcoes.exit().remove();
+
+                var filtro = d3.select("#filtro");
+                filtro.on("input", function () {
+                    var textoFiltro = d3.select(this).property("value");
+
+                    var opcoesFiltradas = nomes.filter(function (d) {
+                        return d.toLowerCase().includes(textoFiltro.toLowerCase());
+                    });
+
+                    var opcoes = dropdown.selectAll("option")
+                        .data(opcoesFiltradas, function (d) { return d; });
+
+                    opcoes.enter()
+                        .append("option")
+                        .text(function (d) { return d; })
+                        .merge(opcoes)
+                        .attr("value", function (d) { return d; });
+
+                    opcoes.exit().remove();
+                });
+
+                function obterDadosPorIndice(indice) {
+                    return data.filter(function (d) {
+                        return d.Nome === indice;
+                    });
+                }
+
+                function grafico() {
+                    var indice = d3.select("#selFood").property("value");
+                    var dados = obterDadosPorIndice(indice);
+                    function plotarGraficoBarras(row) {
+                        // seleciona o elemento svg existente com o id #meuGrafico
+                        var svg = d3.select("#meuGrafico");
+
+                        // remove o gráfico anterior, se existir
+                        if (svg.select("#grafico-barras").node()) {
+                            svg.select("#grafico-barras").remove();
+                        }
+
+                        // cria um novo grupo para o gráfico de barras dentro do elemento svg
+                        var g = svg.append("g")
+                            .attr("id", "grafico-barras");
+
+                        // obtém os valores dos dados que serão usados no gráfico
+                        var carboidratos = +row["Carboidrato (g)"];
+                        var lipidos = +row["Lipídeos (g)"];
+                        var proteinas = +row["Proteína (g)"];
+
+                        // define a escala para o eixo y
+                        var yScale = d3.scaleLinear()
+                            .domain([0, d3.max([carboidratos, lipidos, proteinas])])
+                            .range([0, 100]);
+
+                        // adiciona as barras do gráfico
+                        g.append("rect")
+                            .attr("x", 10)
+                            .attr("y", 100 - yScale(carboidratos))
+                            .attr("width", 20)
+                            .attr("height", yScale(carboidratos))
+                            .style("fill", "blue");
+
+                        g.append("rect")
+                            .attr("x", 40)
+                            .attr("y", 100 - yScale(lipidos))
+                            .attr("width", 20)
+                            .attr("height", yScale(lipidos))
+                            .style("fill", "green");
+
+                        g.append("rect")
+                            .attr("x", 70)
+                            .attr("y", 100 - yScale(proteinas))
+                            .attr("width", 20)
+                            .attr("height", yScale(proteinas))
+                            .style("fill", "red");
+                    }
+                    plotarGraficoBarras(dados[0]);
+                };
+                grafico();
+
+                dropdown.on("change", function () {
+                    var indice = d3.select(this).property("value");
+                    var dados = obterDadosPorIndice(indice);
+                    function plotarGraficoBarras(row) {
+                        // seleciona o elemento svg existente com o id #meuGrafico
+                        var svg = d3.select("#meuGrafico");
+
+                        // remove o gráfico anterior, se existir
+                        if (svg.select("#grafico-barras").node()) {
+                            svg.select("#grafico-barras").remove();
+                        }
+
+                        // cria um novo grupo para o gráfico de barras dentro do elemento svg
+                        var g = svg.append("g")
+                            .attr("id", "grafico-barras");
+
+                        // obtém os valores dos dados que serão usados no gráfico
+                        var carboidratos = +row["Carboidrato (g)"];
+                        var lipidos = +row["Lipídeos (g)"];
+                        var proteinas = +row["Proteína (g)"];
+
+                        // define a escala para o eixo y
+                        var yScale = d3.scaleLinear()
+                            .domain([0, d3.max([carboidratos, lipidos, proteinas])])
+                            .range([0, 100]);
+
+                        // adiciona as barras do gráfico
+                        g.append("rect")
+                            .attr("x", 10)
+                            .attr("y", 100 - yScale(carboidratos))
+                            .attr("width", 20)
+                            .attr("height", yScale(carboidratos))
+                            .style("fill", "blue");
+
+                        g.append("rect")
+                            .attr("x", 40)
+                            .attr("y", 100 - yScale(lipidos))
+                            .attr("width", 20)
+                            .attr("height", yScale(lipidos))
+                            .style("fill", "green");
+
+                        g.append("rect")
+                            .attr("x", 70)
+                            .attr("y", 100 - yScale(proteinas))
+                            .attr("width", 20)
+                            .attr("height", yScale(proteinas))
+                            .style("fill", "red");
+                    }
+                    plotarGraficoBarras(dados[0]);
+                });
+
+            }
+            updateFilteredData();
+
+
+        });
+
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,266 @@
+body {
+    font-family: 'Open Sans';
+    font-size: 18px;
+    margin-left: 10%;
+    margin-right: 10%;
+    background-color: #CADDE5;
+	-webkit-font-smoothing: antialiased;
+    overflow-y: scroll;
+}
+
+p {
+    width: 100%;
+    margin-block-start: 5px;
+    margin-block-end: 5px;
+    font-size: larger;
+}
+
+a, label {
+    font-size: larger;
+}
+
+.introducao,
+#como_utilizar {
+    text-align: justify;
+}
+
+.principal_container {
+    margin: 20px;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    padding-left: 64px;
+    padding-right: 64px;
+    border-radius: 20px;
+    background-color: #FDFCFC;
+    /* Borda com sombra no container */
+    box-shadow: 0 0 10px rgba(160, 140, 140, 0.5);
+}
+
+.plates_container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-radius: 20px;
+    background-color: #cadde574;
+    /* Alfa na cor de fundo*/
+    /* opacity: 0.9; */
+    /* Borda com sombra no container */
+    box-shadow: 0 0 10px rgba(160, 140, 140, 0.5);
+    border: 1px solid #ccc;
+}
+
+
+.fix_height {
+    display: flex;
+    flex: 1;
+}
+
+#selecione_os_alimentos,
+#quantidade_alimentos {
+    margin-block-end: 10px;
+}
+
+#charts {
+    width: 100%;
+    vertical-align: bottom;
+}
+
+#content_violin,
+#content_bar {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-radius: 20px;
+    background-color: #FDFCFC;
+    text-align: center;
+}
+
+/* #content_violin {
+    margin-right: 0.7%;
+}
+
+#content_bar {
+    margin-left: 0.7%;
+} */
+
+#div_bar_chart {
+    margin-top: 20px;
+}
+
+.not_visible {
+    display: none;
+}
+
+#select_food,
+#seletor_e_sliders {
+    width: 100%;
+    text-align: left;
+}
+
+#div_seletor_alimento,
+#div_botao_confirma {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+#observablehq-list_food_cell-dffe91a2 {
+    display: inline-block;
+    vertical-align: bottom;
+    width: 35%;
+    margin-left: 20px;
+    padding-top: 1px;
+    padding-bottom: 31px;
+    padding-left: 40px;
+    padding-right: 45px;
+    border-radius: 20px;
+    background-color: #FDFCFC;
+}
+
+#observablehq-sliders_quantity_cell-dffe91a2 {
+    display: inline-block;
+    vertical-align: center;
+    width: 50%;
+    margin-left: 1%;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 20px;
+    background-color: #FDFCFC;
+}
+
+#m,
+#n,
+#gp,
+#pp,
+#pc,
+#pl,
+#tol {
+    width: 30px;
+    height: 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    line-height: 50px;
+    background-color: #CADDE5;
+    border-color: black;
+}
+
+#filtro_textual {
+    width: 250px;
+    height: 25px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    background-color: #CADDE5;
+    border-color: black;
+}
+
+#num_alimento {
+    width: 45px;
+    height: 25px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
+    background-color: #CADDE5;
+    border-color: black;
+}
+
+#botao_confirmar {
+    width: 100px;
+    height: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
+    background-color: #60EB7A;
+    border-color: black;
+}
+
+#botao_confirmar,
+#num_alimento,
+#filtro_textual {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+#botao_confirmar:hover {
+    background-color: #3F9E4D;
+}
+
+/* #slider_alimento_1,
+#slider_alimento_2,
+#slider_alimento_3 {
+    width: 300px;
+    margin-block-start: 1px;
+    margin-block-end: 1px;
+} */
+
+.custom-toggler {
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+.custom-toggler-icon {
+    width: 1.5em;
+    height: 1.5em;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #999;
+    border-radius: 5px;
+    height: 1px;
+    outline: 0;
+    margin: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: #007bff;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: .3s ease-in-out;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+    transform: scale(1);
+}
+
+.filtro_textual {
+    margin-block-start: 5px;
+    margin-block-end: 5px;
+    width: 260px;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.quantidade_alimento {
+    width: 60px;
+    border-radius: 5px;
+    text-align: center;
+    padding: 5px;
+}
+
+#mais_alimentos,
+#menos_alimentos {
+    width: 40px;
+    text-align: center;
+    align-items: center;
+}
+
+.fix_thin_width {
+    width: 100%;
+}
