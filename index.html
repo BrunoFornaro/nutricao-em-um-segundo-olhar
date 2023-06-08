@@ -75,7 +75,7 @@
                     localStorage.setItem("user", user.uid);
                     
                     // Cria um documento para o usuário no Firestore
-                    setDoc(doc(db, "user", user.uid, "current_data"), {
+                    setDoc(doc(db, "user_info", user.uid), {
                         // Peso
                         weight: 0,
                         // Calorias diárias
@@ -86,11 +86,15 @@
                         lipids_percent: 0,
                         // Percentual de proteínas
                         protein_percent: 0,
+                        // Tolerância
+                        tolerance: 0,
+                        // Dados iniciais
+                        initial: 1,
                       })
                       .then(() => {
                           // Operação de gravação concluída com sucesso
                           // Troca para a página app.html
-                          window.location.href = "objetives.html";
+                          window.location.href = "app.html";
                       })
                       .catch((error) => {
                           // Ocorreu um erro ao gravar no Firestore
