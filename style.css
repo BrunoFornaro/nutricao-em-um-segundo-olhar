@@ -4,7 +4,7 @@ body {
     margin-left: 10%;
     margin-right: 10%;
     background-color: #CADDE5;
-	-webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
 }
 
@@ -15,7 +15,8 @@ p {
     font-size: larger;
 }
 
-a, label {
+a,
+label {
     font-size: larger;
 }
 
@@ -85,7 +86,8 @@ a, label {
     margin-left: 0.7%;
 } */
 
-#div_bar_chart {
+#div_bar_chart,
+#violinplot {
     margin-top: 20px;
 }
 
@@ -216,6 +218,7 @@ a, label {
 }
 
 input[type="range"] {
+    width: 240px;
     -webkit-appearance: none;
     -moz-appearance: none;
     background: #999;
@@ -267,4 +270,42 @@ input[type="range"]::-webkit-slider-thumb:active {
 
 #barchart_matrix_tooltip {
     max-width: 200px;
+}
+
+#logo {
+    width: 80px;
+}
+
+#logo:hover {
+    cursor: pointer;
+}
+
+.center_col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header_button {
+    background-color: #87D936;
+    color: white;
+    border: 1px solid #87D936;
+    box-shadow: 0 0 0px #0F8C5E !important;
+}
+
+.header_button:hover {
+    background-color: #79BF34;
+    border: 1px solid #79BF34;
+}
+
+.header_button.active {
+    background-color: #0F8C5E;
+    border-color: #0F8C5E;
+}
+
+.btn.header_button.active,
+.btn.header_button:active {
+    background-color: #0F8C5E !important;
+    border-color: #0F8C5E !important;
+    box-shadow: 0 0 10px #0F8C5E !important;
 }

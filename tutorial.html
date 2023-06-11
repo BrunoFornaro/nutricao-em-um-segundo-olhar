@@ -79,45 +79,40 @@
     </script>
 </head>
 
+<!-- Header da página -->
 <header>
+
     <!-- Título da página -->
     <div class="row justify-content-center principal_container">
-        <div class="col">
-            <!-- Logo da página -->
+        <div class="col-md-3">
         </div>
-        <div class="col-md-auto">
-            <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="row justify-content-center align-items-center">
+                <!-- Logo da página -->
+                <img src="img/logo_sem_fundo.png" alt="Logo" class="logo" id="logo">
                 <!-- Título -->
                 <h1>NUTRIÇÃO EM UM OLHAR</h1>
             </div>
         </div>
-        <div class="col">
+        <div class="col-md-1 center_col">
             <div class="row justify-content-center align-items-center">
-                <!-- Drop down menu com a opção que leva a página de atualização de dados (objetives) -->
-                <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse"
-                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                        <i class="bi bi-justify custom-toggler-icon"></i>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bi bi-justify"></i>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="app.html">App</a>
-                                    <!-- <a class="dropdown-item" href="objetives.html">Atualizar dados</a> -->
-                                    <a class="dropdown-item" href="tutorial.html">Tutorial</a>
-                                    <a class="dropdown-item" href="about.html">Sobre</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='app.html'">
+                    App
+                </button>
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='tutorial.html'">
+                    Tutorial
+                </button>
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='about.html'">
+                    Sobre
+                </button>
             </div>
         </div>
     </div>

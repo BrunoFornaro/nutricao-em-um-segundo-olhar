@@ -5,6 +5,8 @@
     <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
     <!-- Nome na aba do navegador -->
     <title>Nutrição em um olhar</title>
+    <!-- Logo na aba do navegador (gerada pela IA do Canva) -->
+    <link rel="shortcut icon" href="img/logo.png" type="image/x-icon">
     <!-- Import o D3 -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- Import o Bootstrap -->
@@ -278,6 +280,228 @@
             return plates; // Retorna a lista de pratos
         }
 
+        // Função para preencher a lista de pratos do dia
+        function fillPlatesList(plates) {
+            // Chama a função assíncrona para obter todos os pratos
+            getAllPlates().then(function (plates) {
+
+                // Exemplo do html gerado
+                `
+                <div class="plates_container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>
+                                Prato 1 - 07:35
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <p>
+                                85g
+                            </p>
+                        </div>
+                        <div class="col-md-10">
+                            <p>
+                                Arroz integral cozido
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                `
+
+                function div_title_plate(num_plate, hour) {
+                    var div = `
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3>
+                                    Prato `+ num_plate + ` - ` + hour + `
+                                </h3>
+                            </div>
+                        </div>`
+                    return div;
+                }
+
+                function div_food_of_plate(food_name, quantity) {
+                    var div = `
+                        <div class="row">
+                            <div class="col-md-2">
+                                <p>
+                                    `+ quantity + `g
+                                </p>
+                            </div>
+                            <div class="col-md-10">
+                                <p>
+                                    `+ food_name + `
+                                </p>
+                            </div>
+                        </div>`
+                    return div;
+                }
+
+
+
+                var html_string = ``;
+
+                console.log("Pratos:");
+                console.log(plates);
+
+                // Preenche a lista de pratos com os dados recuperados do firebase
+                for (var plateIndex in plates) {
+                    // Abre a div do prato
+                    html_string += `<div class="plates_container">`;
+
+                    // Obtém o prato atual
+                    var plate = plates[plateIndex];
+
+                    // Adiciona o título do prato
+                    html_string += div_title_plate(plateIndex, plate.hour);
+
+                    // Adiciona os alimentos do prato
+                    for (var foodIndex in plate["food"]) {
+                        if (foodIndex !== "hour") {
+                            // Obtém o alimento atual
+                            var food = plate["food"][foodIndex];
+                            // Adiciona o alimento ao prato
+                            html_string += div_food_of_plate(food["name"], food["quantity"]);
+                        }
+                    }
+
+                    // Fecha a div do prato
+                    html_string += `</div>`;
+                }
+
+
+                html_string += `</div>`;
+
+                document.getElementById("lista_pratos_do_dia").innerHTML = html_string;
+
+            });
+        }
+
+        // Preenche a lista de pratos do dia
+        fillPlatesList();
+
+        async function getAllPlates() {
+            var plates = {}; // Objeto para armazenar os pratos
+            var num_pratos = 0;
+            var stop_1 = false;
+            var stop_2 = false;
+
+            while (!stop_1) {
+                console.log("Entrou no loop");
+                var num_food = 1;
+                stop_1 = true;
+                stop_2 = false;
+
+                while (!stop_2) {
+                    if (num_food == 2) {
+                        stop_1 = false;
+                    }
+
+                    /*
+                    console.log(
+                        "tentou pegar o prato no caminho: " +
+                        user_uid +
+                        "/" +
+                        curr_date_formated() +
+                        "/plates/" +
+                        num_pratos +
+                        "/food/" +
+                        num_food
+                    );
+                    */
+
+                    try {
+                        var docRef = doc(
+                            db,
+                            user_uid,
+                            curr_date_formated(),
+                            "plates",
+                            "" + num_pratos,
+                            "food",
+                            num_food.toString()
+                        );
+
+                        // Aguardar a conclusão da chamada assíncrona
+                        var docSnap = await getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            // Obter dados do prato atual
+                            var plateData = docSnap.data();
+                            var nomeAlimento = plateData["name"];
+                            var quantidade = plateData["quantity"];
+                            var hora = plateData["hour"];
+
+                            // Adicionar prato ao objeto de pratos
+                            if (!plates[num_pratos]) {
+                                plates[num_pratos] = {
+                                    hour: hora,
+                                };
+                                plates[num_pratos]["food"] = {};
+                            }
+
+                            plates[num_pratos]["food"][num_food.toString()] = {
+                                name: nomeAlimento,
+                                quantity: quantidade,
+                            };
+
+                            num_food++;
+
+                            // console.log("Prato " + num_pratos + ":");
+                            // console.log("Nome do alimento: " + nomeAlimento);
+                            // console.log("Quantidade: " + quantidade);
+                            // console.log("Hora: " + hora);
+                        } else {
+                            console.log("Parou o loop");
+                            stop_2 = true;
+                        }
+                    } catch (error) {
+                        console.error("Erro ao recuperar os dados:", error);
+                        stop_2 = true;
+                    }
+                }
+                num_pratos++;
+            }
+
+            return plates; // Retornar objeto de pratos
+        }
+
+        function curr_date_formated() {
+            var data = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+            var dia = data.slice(0, 2);
+            var mes = data.slice(3, 5);
+            var ano = data.slice(6, 10);
+            return ano + "-" + mes + "-" + dia;
+
+        }
+
+        function curr_hour_formated() {
+            var data = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+            return data.slice(12, 17);
+        }
+
+        // Adiciona um evento a todos os botões da classe nav-link
+        var nav_links = document.getElementsByClassName("nav-link");
+
+        // Itera sobre os elementos da coleção nav_links
+        for (var i = 0; i < nav_links.length; i++) {
+            // Adiciona o evento de clique a cada elemento
+            nav_links[i].addEventListener("click", function () {
+                // Obtém a div de id #matrix_tooptip
+                var matrix_tooltip = document.getElementById("matrix_tooltip");
+
+                // Fecha a div
+                matrix_tooltip.style.visibility = "hidden";
+
+                // Fecha o pai da div
+                matrix_tooltip.parentElement.style.visibility = "hidden";
+            });
+        }
+        
+        var matrixTooltip = document.getElementById("matrix_tooltip");
+        var elementoPai = matrixTooltip.parentNode;
+        elementoPai.style.backgroundColor = "red";  // Exemplo de alteração de estilo
 
     </script>
 
@@ -285,46 +509,40 @@
     <script src="conect_firebase.js" type="module"></script>
 </head>
 
+<!-- Header da página -->
 <header>
 
     <!-- Título da página -->
     <div class="row justify-content-center principal_container">
-        <div class="col">
-            <!-- Logo da página -->
+        <div class="col-md-3">
         </div>
-        <div class="col-md-auto">
-            <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="row justify-content-center align-items-center">
+                <!-- Logo da página -->
+                <img src="img/logo_sem_fundo.png" alt="Logo" class="logo" id="logo">
                 <!-- Título -->
                 <h1>NUTRIÇÃO EM UM OLHAR</h1>
             </div>
         </div>
-        <div class="col">
+        <div class="col-md-1 center_col">
             <div class="row justify-content-center align-items-center">
-                <!-- Drop down menu com a opção que leva a página de atualização de dados (objetives) -->
-                <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse"
-                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                        <i class="bi bi-justify custom-toggler-icon"></i>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bi bi-justify"></i>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="app.html">App</a>
-                                    <!-- <a class="dropdown-item" href="objetives.html">Atualizar dados</a> -->
-                                    <a class="dropdown-item" href="tutorial.html">Tutorial</a>
-                                    <a class="dropdown-item" href="about.html">Sobre</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='app.html'">
+                    App
+                </button>
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='tutorial.html'">
+                    Tutorial
+                </button>
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='about.html'">
+                    Sobre
+                </button>
             </div>
         </div>
     </div>
@@ -332,8 +550,8 @@
 
 <body>
 
+    <!-- Tabs das páginas do app principal -->
     <div class="row">
-        <!-- Tabs das páginas do app principal -->
         <div class="col-md-12 principal_container">
             <ul class="nav nav-pills">
                 <li class="nav-item">
@@ -355,46 +573,47 @@
 
         </div>
     </div>
-    <!-- Conteúdo das tabs -->
+    <!-- Conteúdo das tabs princiapis do app -->
     <div class="tab-content">
         <div class="tabs_pages tab-pane fade show active" id="content_selecao_prato" role="tabpanel"
             aria-labelledby="tab_selecao_prato">
             <!-- Aba de seleção do prato -->
 
+            <!-- Área para inserir informações do usuário -->
             <div class="not_visible">
-                <!-- Área para inserir informações do usuário -->
                 <div class="principal_container">
                     <h2>Informações do usuário</h2>
-                    <div id="observablehq-inserts_cell-dbd278b4"></div>
+                    <div id="observablehq-inserts_cell-4dca14be"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-dbd278b4" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-4dca14be" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-dbd278b4"></div>
+                <div id="observablehq-list_food_cell-4dca14be"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-dbd278b4"></div>
+                <div id="observablehq-sliders_quantity_cell-4dca14be"></div>
             </div>
 
 
             <div class="row ">
+                <!-- Seletores dos alimentos -->
                 <div class="col-md-6 fix_height">
                     <div class="principal_container fix_thin_width">
                         <div class="row">
                             <div class="col-md-7">
-                                <h2>Alimentos</h2>
+                                <h2>Monte sua refeição:</h2>
                             </div>
                             <div class="col-md-5">
                                 <div class="row justify-content-center">
                                     <div class="col-md-6">
-                                        <button class="btn btn-success" type="button"
-                                            id="confirmar_prato">Confirmar</button>
+                                        <button class="btn btn-success" type="button" id="confirmar_prato">Salvar
+                                            Prato</button>
                                     </div>
                                     <div class="col-md-3">
                                         <button class="btn btn-primary" type="button" id="mais_alimentos">+</button>
@@ -406,7 +625,7 @@
                             </div>
                         </div>
 
-
+                        <!-- Seletor 1 -->
                         <div id="alimentos_do_prato">
                             <!-- Seletor 1 -->
                             <div class="row">
@@ -428,33 +647,42 @@
                                 </div>
                             </div>
                         </div>
+
+
+                        <!-- Valor energético do prato -->
+                        <div id="observablehq-valor_energetico-4dca14be"></div>
+
                         <br>
                         <br>
                         <br>
+
+                        <!-- Gráfico de pizza -->
                         <div class="fix_thin_width">
                             <div class="row justify-content-center">
-                                <div id="observablehq-div_pie_chart-dbd278b4"></div>
+                                <div id="observablehq-div_pie_chart-4dca14be"></div>
                             </div>
                         </div>
+
 
                     </div>
 
 
                 </div>
+                <!-- Gráficos de filtro e de macronutriente -->
                 <div class="col-md-6 fix_height">
 
                     <!-- Tabs dos gráfico -->
                     <div class="principal_container fix_thin_width">
-                        <h2>Gráficos</h2>
+                        <h2>Filtro e Macronutrientes do Prato</h2>
                         <div class="">
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
                                     <a class="tabs_charts nav-link active" href="#content_violin" id="tab_violin"
-                                        data-bs-toggle="tab">Filtro</a>
+                                        data-bs-toggle="tab">Filtrar alimentos</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="tabs_charts nav-link" href="#content_bar" id="tab_bar"
-                                        data-bs-toggle="tab">Macronutrientes</a>
+                                        data-bs-toggle="tab">Distribuição dos Macronutrientes</a>
                                 </li>
                             </ul>
                         </div>
@@ -462,14 +690,12 @@
                         <div id="charts" class="">
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
-                                <div id="observablehq-violinplot_cell-dbd278b4"></div>
+                                <div id="observablehq-violinplot_cell-4dca14be"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
-                                <div id="observablehq-bar_chart_cell-dbd278b4"></div>
-                                <!-- Valor energético do prato -->
-                                <div id="observablehq-valor_energetico-dbd278b4"></div>
+                                <div id="observablehq-bar_chart_cell-4dca14be"></div>
                             </div>
                         </div>
                     </div>
@@ -478,10 +704,9 @@
                 </div>
             </div>
 
-
-
-
         </div>
+
+        <!-- Aba de objetivos -->
         <div class="tabs_pages tab-pane fade not_visible" id="content_dados_do_usuario" role="tabpanel"
             aria-labelledby="tab_dados_do_usuario">
             <!-- Aba de objetivos -->
@@ -510,8 +735,12 @@
                             <input type="number" class="form-control" id="protein_percent" placeholder="25">
                         </div>
                         <div class="form-group">
-                            <label for="protein_percent">Tolerância (%)</label>
+                            <label for="tolerance">Tolerância (%)</label>
                             <input type="number" class="form-control" id="tolerance" placeholder="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="num_daily_plates">Número de refeições por dia</label>
+                            <input type="number" class="form-control" id="num_daily_plates" placeholder="4">
                         </div>
                         <div class="row">
                             <div class="col text-center">
@@ -523,9 +752,13 @@
             </form>
 
         </div>
+
+
+        <!-- Aba de Peso do usuário -->
         <div class="tabs_pages tab-pane fade not_visible" id="content_peso" role="tabpanel" aria-labelledby="tab_peso">
             <!-- Aba de Peso do usuário -->
             <div class="row">
+                <!-- Seletor da data -->
                 <div class="col-md-4 fix_height">
                     <div class="principal_container">
 
@@ -578,6 +811,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Gráfico de peso -->
                 <div class="col-md-8">
                     <!-- Gráfico de peso -->
                     <div class="principal_container">
@@ -588,14 +822,16 @@
                         </div>
                         <div class="row">
                             <!-- CSS do gráfico -->
-                            <div id="observablehq-css_grafico_de_peso-dbd278b4"></div>
+                            <div id="observablehq-css_grafico_de_peso-4dca14be"></div>
                             <!-- Gráfico -->
-                            <div id="observablehq-chart_peso-dbd278b4"></div>
+                            <div id="observablehq-chart_peso-4dca14be"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Aba de Refeições do dia -->
         <div class="tabs_pages tab-pane fade not_visible" id="content_pratos_do_dia" role="tabpanel"
             aria-labelledby="tab_pratos_do_dia">
             <div class="row">
@@ -603,17 +839,19 @@
                     <div class="principal_container fix_thin_width">
                         <div class="row">
                             <div class="col-md-12">
-                                <h2>Pratos de hoje</h2>
+                                <h2>Refeições de hoje</h2>
                             </div>
                         </div>
-                        <div class="lista_pratos_do_dia">
+                        <div class="lista_pratos_do_dia" id="lista_pratos_do_dia">
                             <!-- Lista de pratos do dia (preenchida por javascript) -->
 
                             <!-- Teste preenchido a mão -->
-                            <div class="plates_container">
+                            <!-- <div class="plates_container">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <h3>Prato 1 - 07:35</h3>
+                                        <h3>
+                                            Prato 1 - 07:35
+                                        </h3>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -652,61 +890,15 @@
                                         </p>
                                     </div>
                                 </div>
-                            </div>
-
-
-                            <!-- Teste preenchido a mão -->
-                            <div class="plates_container">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h3>Prato 2 - 12:43</h3>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <p>
-                                            85g
-                                        </p>
-                                    </div>
-                                    <div class="col-md-10">
-                                        <p>
-                                            Arroz tipo 1 cozido
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <p>
-                                            80g
-                                        </p>
-                                    </div>
-                                    <div class="col-md-10">
-                                        <p>
-                                            Feijão preto cozido
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <p>
-                                            150g
-                                        </p>
-                                    </div>
-                                    <div class="col-md-10">
-                                        <p>
-                                            Carne bovina costela assada
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
+                            </div> -->
 
                         </div>
                     </div>
                 </div>
+                <!-- Aba dos gráficos dos micronutrientes -->
                 <div class="col-md-6 fix_height">
                     <div class="principal_container fix_thin_width">
-                        <h2>Micro nutrientes</h2>
+                        <h2>Micronutrientes</h2>
                         <!-- Nav-items para gorduras, minerais e vitaminas -->
                         <ul class="nav nav-tabs today_tab" id="today_tab" role="tablist">
                             <li class="nav-item today_tab" role="presentation" id="tab_gorduras">
@@ -725,23 +917,23 @@
                                     aria-selected="false">Vitaminas</a>
                             </li>
                         </ul>
-                        <!-- Conteúdo das tabs -->
+                        <!-- Conteúdo das tabs das gorduras, minerais e vitaminas -->
                         <div>
                             <div class="tab-content" id="myTabContent">
                                 <!-- Conteúdo da tab de gorduras -->
                                 <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
                                     aria-labelledby="gorduras-tab">
-                                    <div id="observablehq-lipids_cell-dbd278b4"></div>
+                                    <div id="observablehq-lipids_cell-4dca14be"></div>
                                 </div>
                                 <!-- Conteúdo da tab de minerais -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <div id="observablehq-minerals_cell-dbd278b4"></div>
+                                    <div id="observablehq-minerals_cell-4dca14be"></div>
                                 </div>
                                 <!-- Conteúdo da tab de vitaminas -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <div id="observablehq-vitamins_cell-dbd278b4"></div>
+                                    <div id="observablehq-vitamins_cell-4dca14be"></div>
                                 </div>
                             </div>
                         </div>
@@ -754,26 +946,26 @@
 
         <!-- Parte só últil no backend -->
         <div class="not_visible">
-            <div id="observablehq-init_bar_chart_cell-dbd278b4"></div>
-            <div id="observablehq-outputs_alimentos-dbd278b4"></div>
-            <div id="observablehq-filter_food_to_bar_chart-dbd278b4"></div>
-            <div id="observablehq-alimentos_selecionados-dbd278b4"></div>
-            <div id="observablehq-filtro_textual-dbd278b4"></div>
-            <div id="observablehq-num_alimento-dbd278b4"></div>
-            <div id="observablehq-botao_confirmar-dbd278b4"></div>
-            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-dbd278b4"></div>
-            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-dbd278b4"></div>
-            <div id="observablehq-function_confirm_buttom-dbd278b4"></div>
-            <div id="observablehq-update_dropdown-dbd278b4"></div>
-            <div id="observablehq-update_dropdown_cell-dbd278b4"></div>
-            <div id="observablehq-brush_cell-dbd278b4"></div>
-            <div id="observablehq-violinplot_function_cell-dbd278b4"></div>
-            <div id="observablehq-BarChart-dbd278b4"></div>
-            <div id="observablehq-pallete-dbd278b4"></div>
-            <div id="observablehq-add_on_change_to_textual_filter-dbd278b4"></div>
-            <div id="observablehq-get_selected_foods-dbd278b4"></div>
-            <div id="observablehq-highlight_foods-dbd278b4"></div>
-            <div id="observablehq-highlight_color-dbd278b4"></div>
+            <div id="observablehq-init_bar_chart_cell-4dca14be"></div>
+            <div id="observablehq-outputs_alimentos-4dca14be"></div>
+            <div id="observablehq-filter_food_to_bar_chart-4dca14be"></div>
+            <div id="observablehq-alimentos_selecionados-4dca14be"></div>
+            <div id="observablehq-filtro_textual-4dca14be"></div>
+            <div id="observablehq-num_alimento-4dca14be"></div>
+            <div id="observablehq-botao_confirmar-4dca14be"></div>
+            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-4dca14be"></div>
+            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-4dca14be"></div>
+            <div id="observablehq-function_confirm_buttom-4dca14be"></div>
+            <div id="observablehq-update_dropdown-4dca14be"></div>
+            <div id="observablehq-update_dropdown_cell-4dca14be"></div>
+            <div id="observablehq-brush_cell-4dca14be"></div>
+            <div id="observablehq-violinplot_function_cell-4dca14be"></div>
+            <div id="observablehq-BarChart-4dca14be"></div>
+            <div id="observablehq-pallete-4dca14be"></div>
+            <div id="observablehq-add_on_change_to_textual_filter-4dca14be"></div>
+            <div id="observablehq-get_selected_foods-4dca14be"></div>
+            <div id="observablehq-highlight_foods-4dca14be"></div>
+            <div id="observablehq-highlight_color-4dca14be"></div>
             <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@2688">Projeto Final - Visualização de Dados
                     by
                     Bruno
@@ -785,43 +977,43 @@
         <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
         <script type="module">
             import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@2690.js?v=3";
+            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@3087.js?v=3";
             new Runtime().module(define, name => {
-                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-dbd278b4"));
-                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-dbd278b4"));
-                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-dbd278b4"));
-                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-dbd278b4"));
-                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-dbd278b4"));
-                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-dbd278b4"));
-                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-dbd278b4"));
-                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-dbd278b4"));
-                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-dbd278b4"));
-                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-dbd278b4"));
-                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-dbd278b4"));
-                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-dbd278b4"));
-                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-dbd278b4"));
-                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-dbd278b4"));
-                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-dbd278b4"));
-                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-dbd278b4"));
-                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-dbd278b4"));
-                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-dbd278b4"));
-                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-dbd278b4"));
-                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-dbd278b4"));
-                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-dbd278b4"));
-                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-dbd278b4"));
-                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-dbd278b4"));
-                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-dbd278b4"));
-                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-dbd278b4"));
-                if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-dbd278b4"));
-                if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-dbd278b4"));
-                if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-dbd278b4"));
-                if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-dbd278b4"));
-                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-dbd278b4"));
-                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-dbd278b4"));
-                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-dbd278b4"));
-                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-dbd278b4"));
-                return ["add_selector","violinplot_function_cell","MatrixChart","brush_cell"].includes(name);
-              
+                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-4dca14be"));
+                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-4dca14be"));
+                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-4dca14be"));
+                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-4dca14be"));
+                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-4dca14be"));
+                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-4dca14be"));
+                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-4dca14be"));
+                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-4dca14be"));
+                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-4dca14be"));
+                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-4dca14be"));
+                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-4dca14be"));
+                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-4dca14be"));
+                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-4dca14be"));
+                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-4dca14be"));
+                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-4dca14be"));
+                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-4dca14be"));
+                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-4dca14be"));
+                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-4dca14be"));
+                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-4dca14be"));
+                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-4dca14be"));
+                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-4dca14be"));
+                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-4dca14be"));
+                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-4dca14be"));
+                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-4dca14be"));
+                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-4dca14be"));
+                if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-4dca14be"));
+                if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-4dca14be"));
+                if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-4dca14be"));
+                if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-4dca14be"));
+                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-4dca14be"));
+                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-4dca14be"));
+                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-4dca14be"));
+                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-4dca14be"));
+                return ["add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
+
             });
         </script>
 </body>
