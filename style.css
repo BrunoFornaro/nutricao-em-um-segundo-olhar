@@ -35,6 +35,8 @@ label {
     background-color: #FDFCFC;
     /* Borda com sombra no container */
     box-shadow: 0 0 10px rgba(160, 140, 140, 0.5);
+    /* Borda preta 1px*/
+    border: 1px solid #ccc;
 }
 
 .plates_container {
@@ -268,9 +270,9 @@ input[type="range"]::-webkit-slider-thumb:active {
     width: 100%;
 }
 
-#barchart_matrix_tooltip {
+/* #barchart_matrix_tooltip {
     max-width: 200px;
-}
+} */
 
 #logo {
     width: 80px;

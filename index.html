@@ -77,7 +77,9 @@
                     // Cria um documento para o usuário no Firestore
                     setDoc(doc(db, "user_info", user.uid), {
                         // Peso
-                        weight: 0,
+                        weight: -1,
+                        // Último peso
+                        last_weight: -1,
                         // Calorias diárias
                         daily_calories: 0,
                         // Percentual de carboidratos

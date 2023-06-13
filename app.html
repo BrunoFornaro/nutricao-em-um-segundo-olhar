@@ -37,6 +37,8 @@
 
     <!-- Importar scripts do Firebase -->
     <script type="module">
+        const DEBUG = false;
+
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
@@ -64,8 +66,48 @@
         const auth = getAuth();
         const db = getFirestore(app);
 
-        // Imprime o usuário atual (salvo no local storage)
+        // Dados dos alimentos
+        var data = await readCSV("archive/tabela.csv");
+
+        // Dicionário que relaciona o nome do alimento com seu índice
+        var food_indexes = {}
+        for (var i in data) {
+            food_indexes[data[i]["Nome"]] = i;
+        }
+        var nutritional_columns = [
+            "Saturados (g)",
+            "Monoinsaturados (g)",
+            "Poliinsaturados (g)",
+            "Manganês (mg)",
+            "Fósforo (mg)",
+            "Ferro (mg)",
+            "Sódio (mg)",
+            "Cobre (mg)",
+            "Zinco (mg)",
+            "Retinol(µg)",
+            "Tiamina (mg)",
+            "Riboflavina (mg)",
+            "Piridoxina (mg)",
+            "Niacina (mg)",
+            "Vitamina C (mg)",
+            "Umidade (%)",
+            "Energia (kcal)",
+            "Energia (kJ)",
+            "Proteína (g)",
+            "Lipídeos (g)",
+            "Colesterol (mg)",
+            "Carboidrato (g)",
+            "Fibra Alimentar (g)",
+            "Cinzas (g)",
+            "Cálcio (mg)",
+            "Magnésio (mg)"
+        ];
+
+        // Recupera o usuário atual (salvo no local storage)
         var user_uid = localStorage.getItem('user');
+        if (DEBUG) {
+            console.log(user_uid);
+        }
 
         // Recupera os dados do usuário
         const docRef = doc(db, "user_info", user_uid);
@@ -254,7 +296,6 @@
             var stop = false;
 
             while (!stop) {
-                console.log("Entrou no loop");
 
                 try {
                     var formated_date = data.toISOString().slice(0, 10);
@@ -265,9 +306,7 @@
                         var plateData = docSnap.data();
                         plates.push(plateData); // Adiciona o prato à lista
                         num_pratos++;
-                        console.log(plateData);
                     } else {
-                        console.log("Parou o loop");
                         stop = true;
                     }
                 } catch (error) {
@@ -276,7 +315,6 @@
                 }
             }
 
-            console.log("Número de pratos: " + num_pratos);
             return plates; // Retorna a lista de pratos
         }
 
@@ -315,7 +353,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <h3>
-                                    Prato `+ num_plate + ` - ` + hour + `
+                                    Prato `+ (parseInt(num_plate) + 1) + ` - ` + hour + `
                                 </h3>
                             </div>
                         </div>`
@@ -343,8 +381,6 @@
 
                 var html_string = ``;
 
-                console.log("Pratos:");
-                console.log(plates);
 
                 // Preenche a lista de pratos com os dados recuperados do firebase
                 for (var plateIndex in plates) {
@@ -382,14 +418,17 @@
         // Preenche a lista de pratos do dia
         fillPlatesList();
 
-        async function getAllPlates() {
+        async function getAllPlates(date = 0) {
             var plates = {}; // Objeto para armazenar os pratos
             var num_pratos = 0;
             var stop_1 = false;
             var stop_2 = false;
 
+            if (!date) {
+                date = curr_date_formated()
+            }
+
             while (!stop_1) {
-                console.log("Entrou no loop");
                 var num_food = 1;
                 stop_1 = true;
                 stop_2 = false;
@@ -399,24 +438,11 @@
                         stop_1 = false;
                     }
 
-                    /*
-                    console.log(
-                        "tentou pegar o prato no caminho: " +
-                        user_uid +
-                        "/" +
-                        curr_date_formated() +
-                        "/plates/" +
-                        num_pratos +
-                        "/food/" +
-                        num_food
-                    );
-                    */
-
                     try {
                         var docRef = doc(
                             db,
                             user_uid,
-                            curr_date_formated(),
+                            date,
                             "plates",
                             "" + num_pratos,
                             "food",
@@ -447,13 +473,7 @@
                             };
 
                             num_food++;
-
-                            // console.log("Prato " + num_pratos + ":");
-                            // console.log("Nome do alimento: " + nomeAlimento);
-                            // console.log("Quantidade: " + quantidade);
-                            // console.log("Hora: " + hora);
                         } else {
-                            console.log("Parou o loop");
                             stop_2 = true;
                         }
                     } catch (error) {
@@ -463,6 +483,37 @@
                 }
                 num_pratos++;
             }
+
+            return plates; // Retornar objeto de pratos
+        }
+
+        // Função para pegar todos os pratos do mês
+        async function getAllPlatesInMonth(year, month) {
+            var plates = {}; // Objeto para armazenar os pratos
+            var days_in_month = getDaysInMonth(year, month); // Dias no mês
+
+            if (month < 10) {
+                month = "0" + month;
+            }
+
+            // Itera pelos dias do mês
+            for (var day = 1; day <= days_in_month; day++) {
+                if (day < 10) {
+                    day = "0" + day;
+                }
+
+                // Pega o dia atual
+                var date = year + "-" + month + "-" + day;
+
+                // Pega os pratos do dia
+                var plates_of_day = await getAllPlates(date);
+
+                // Adiciona os pratos do dia ao objeto de pratos
+                plates[date] = plates_of_day;
+            }
+
+            // Objeto JavaScript
+            var objeto = { nome: "João", idade: 25, cidade: "São Paulo" };
 
             return plates; // Retornar objeto de pratos
         }
@@ -491,17 +542,519 @@
                 // Obtém a div de id #matrix_tooptip
                 var matrix_tooltip = document.getElementById("matrix_tooltip");
 
-                // Fecha a div
-                matrix_tooltip.style.visibility = "hidden";
+                if (matrix_tooltip) {
+                    // Fecha a div
+                    matrix_tooltip.style.visibility = "hidden";
 
-                // Fecha o pai da div
-                matrix_tooltip.parentElement.style.visibility = "hidden";
+                    // Fecha o pai da div
+                    matrix_tooltip.parentElement.style.visibility = "hidden";
+                }
             });
         }
-        
-        var matrixTooltip = document.getElementById("matrix_tooltip");
-        var elementoPai = matrixTooltip.parentNode;
-        elementoPai.style.backgroundColor = "red";  // Exemplo de alteração de estilo
+
+        function getDaysInMonth(year, month) {
+            // Cria um objeto Date com o primeiro dia do próximo mês
+            var date = new Date(year, month, 1); // Mes: 1 = Janeiro, 2 = Fevereiro, ...
+
+            // Subtrai 1 dia para obter o último dia do mês atual
+            date.setDate(date.getDate() - 1);
+
+            // Retorna o número de dias no mês
+            return date.getDate();
+        }
+
+        $(document).ready(function () {
+            // Inicialize o Monthpicker
+            $("#monthpicker").datepicker({
+                format: "mm/yyyy",
+                minViewMode: "months",
+                autoclose: false,
+                altField: "#dateHidden",
+                onClose: function (dateText, inst) {
+                    var selectedDate = $(this).datepicker("getDate");
+                    var selectedMonth = $.datepicker.formatDate("mm", selectedDate);
+                    // Outras ações que você deseja realizar quando o valor do monthpicker for alterado
+                }
+            }).on("changeDate", function (e) {
+                var selectedMonth = e.date.toISOString(); // Obtém o mês selecionado (adiciona +1 porque os meses em JavaScript são baseados em zero) 
+                var year = e.date.getFullYear(); // Obtém o ano selecionado
+                var month = e.date.getMonth() + 1; // Obtém o mês selecionado (adiciona +1 porque os meses em JavaScript são baseados em zero)
+
+                monthpickerFunction(year, month);
+                // Outras ações que você deseja realizar quando o valor do monthpicker for alterado
+            }).datepicker("show")
+        });
+
+        async function getUserInfo(
+            date = 0,
+            infos = [
+                "weight",
+                "last_weight",
+                "daily_calories",
+                "carbs_percent",
+                "lipids_percent",
+                "protein_percent",
+                "tolerance",
+                "num_daily_plates"],
+        ) {
+            if (date == 0) {
+                date = curr_date_formated();
+            }
+            var data = {};
+
+            try {
+                var docRef = doc(db, user_uid, date, "user_info", "info");
+
+                // Aguardar a conclusão da chamada assíncrona
+                var docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    // Obter dados do prato atual
+                    var user_data = docSnap.data();
+                    for (var i = 0; i < infos.length; i++) {
+                        data[infos[i]] = user_data[infos[i]];
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao recuperar os dados:", error);
+            }
+
+            return data;
+        }
+
+        async function getUserInfoOfMonth(
+            year,
+            month,
+            infos = [
+                "weight",
+                "last_weight",
+                "daily_calories",
+                "carbs_percent",
+                "lipids_percent",
+                "protein_percent",
+                "tolerance",
+                "num_daily_plates"
+            ]
+        ) {
+            var user_uid = localStorage.getItem("user_uid");
+            var days_in_month = getDaysInMonth(year, month); // Dias no mês
+            var data = {};
+
+            if (month < 10) {
+                month = "0" + month;
+            }
+
+            // Itera pelos dias do mês
+            for (var day = 1; day <= days_in_month; day++) {
+                if (day < 10) {
+                    day = "0" + day;
+                }
+
+                // Pega o dia atual
+                var date = year + "-" + month + "-" + day;
+
+
+
+                // Pega o peso do dia
+                var data_of_day = await getUserInfo(
+                    date,
+                    infos,
+                );
+
+                // Adiciona o peso do dia ao objeto de pesos
+                data[date] = data_of_day;
+            }
+
+            return data;
+        }
+
+        async function getFoodNutritionalInfo(food_name, quantity = 100) {
+            // Todas as colunas
+            // ["Nome", "Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "id", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+            // Colunas que serão usadas
+            var columns = ["Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+
+            // Transforma a quantidade em um inteiro
+            quantity = parseInt(quantity);
+
+            // Pega os dados dos alimentos
+            /*
+            var food_info = {
+                ...data.find(function (item) {
+                    return item.Nome === food_name;
+                })
+            };
+            */
+            var food_info = { ...data[food_indexes[food_name]] };
+
+            // Corrige os valores de acordo com a quantidade
+            for (var column_index in columns) {
+                var column = columns[column_index];
+                food_info[column] = food_info[column] * quantity / 100;
+            }
+
+            return food_info;
+        }
+
+        async function getNutritionalInfoOfPlate(plate) {
+            // Todas as colunas
+            // ["Nome", "Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "id", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+            // Colunas que serão usadas
+            var columns = ["Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+
+            // Variável que armazenará as informações nutricionais do prato
+            var plate_nutritional_info = {};
+
+            // Itera pelos alimentos do prato
+            for (var food_index in plate) {
+                // Alimento atual
+                var food = plate[food_index];
+
+                // Pega as informações nutricionais do alimento
+                var food_nutritional_info = await getFoodNutritionalInfo(food["name"], food["quantity"]);
+
+                // Adiciona as informações nutricionais do alimento ao prato
+                for (var column_index in columns) {
+                    var column = columns[column_index];
+                    if (plate_nutritional_info[column] == undefined) {
+                        plate_nutritional_info[column] = 0;
+                    }
+                    plate_nutritional_info[column] += food_nutritional_info[column];
+                }
+            }
+
+            return plate_nutritional_info;
+        }
+
+        async function getNutritionalInfoOfPlates(plates) {
+            // Todas as colunas
+            // ["Nome", "Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "id", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+            // Colunas que serão usadas
+            var columns = ["Saturados (g)", "Monoinsaturados (g)", "Poliinsaturados (g)", "Manganês (mg)", "Fósforo (mg)", "Ferro (mg)", "Sódio (mg)", "Cobre (mg)", "Zinco (mg)", "Retinol(µg)", "Tiamina (mg)", "Riboflavina (mg)", "Piridoxina (mg)", "Niacina (mg)", "Vitamina C (mg)", "Umidade (%)", "Energia (kcal)", "Energia (kJ)", "Proteína (g)", "Lipídeos (g)", "Colesterol (mg)", "Carboidrato (g)", "Fibra Alimentar (g)", "Cinzas (g)", "Cálcio (mg)", "Magnésio (mg)"]
+
+            var nutritional_info = {};
+            // Itera pelos pratos
+            for (var plate_index in plates) {
+                var plate = plates[plate_index]; // Prato atual
+
+                // Pega as informações nutricionais do prato
+                var plate_nutritional_info = await getNutritionalInfoOfPlate(plate["food"]);
+
+                // Adiciona as informações nutricionais do prato
+                for (var column_index in columns) {
+                    var column = columns[column_index];
+                    if (nutritional_info[column] == undefined) {
+                        nutritional_info[column] = 0;
+                    }
+                    nutritional_info[column] += plate_nutritional_info[column];
+                }
+            }
+            return nutritional_info;
+        }
+
+        async function getNutritionalInfoOfPlatesInMonth(plates_of_month) {
+            // Itera pelos dias
+            for (var day_index in plates_of_month) {
+                var day = plates_of_month[day_index]; // Dia atual
+                if (Object.keys(day).length == 0) { // Se o dia não tiver pratos
+                    continue;
+                }
+
+                var plates_nutritional_info = await getNutritionalInfoOfPlates(day);
+
+                // Adiciona as informações nutricionais dos pratos
+                plates_of_month[day_index] = plates_nutritional_info;
+            }
+            return plates_of_month;
+        }
+
+        async function getWeightOfMonth(year, month) {
+            var weight2 = await getUserInfoOfMonth(year, month, ["weight", "last_weight"]);
+            var weight = { ...weight2 };
+
+            // último dia do mês
+            var last_day = new Date(year, month, 0).getDate();
+            // Se estivermos no mês atual, o último dia é o dia atual
+            if (year == new Date().getFullYear() && month == new Date().getMonth() + 1) {
+                last_day = new Date().getDate();
+            }
+
+            // Corrige o mês para o formato MM
+            if (month < 10) {
+                month = "0" + month;
+            }
+
+            // Itera pelos dias na ordem crescente para preencher os dias vazios
+            // Último peso registrado
+            for (var day = 2; day <= last_day; day++) {
+                // Dia anterior
+                var prev_day = day - 1;
+                if (prev_day < 10) {
+                    prev_day = "0" + prev_day;
+                }
+                // Pega o peso do dia anterior
+                prev_day = year + "-" + month + "-" + prev_day;
+                // Se o dia anterior não tiver peso registrado
+                if (Object.keys(weight[prev_day]).length == 0) {
+                    continue;
+                }
+
+                // Corrige o dia para o formato DD
+                if (day < 10) {
+                    day = "0" + day;
+                }
+                // Pega o peso do dia atual
+                var curr_day = year + "-" + month + "-" + day;
+
+                // Se o dia não tiver peso registrado
+                if (Object.keys(weight[curr_day]).length == 0) {
+                    // Preenche o dia com o último peso registrado
+                    weight[curr_day] = {
+                        "weight": weight[prev_day]["weight"],
+                        "last_weight": weight[prev_day]["weight"]
+                    }
+                }
+            }
+
+            // Itera pelos dias na ordem decrescente para preencher os dias vazios
+            for (var day = last_day - 1; day >= 1; day--) {
+                // Dia posterior
+                var next_day = day + 1;
+                if (next_day < 10) {
+                    next_day = "0" + next_day;
+                }
+                // Pega o peso do dia posterior
+                next_day = year + "-" + month + "-" + next_day;
+                // Se o dia posterior não tiver peso registrado
+                if (Object.keys(weight[next_day]).length == 0) {
+                    continue;
+                }
+
+                // Corrige o dia para o formato DD
+                if (day < 10) {
+                    day = "0" + day;
+                }
+                // Pega o peso do dia atual
+                var curr_day = year + "-" + month + "-" + day;
+
+                // Se o dia não tiver peso registrado
+                if (Object.keys(weight[curr_day]).length == 0 && weight[next_day]["last_weight"] != -1) {
+                    // Preenche o dia com o último peso registrado
+                    weight[curr_day] = {
+                        "weight": weight[next_day]["last_weight"],
+                        "last_weight": weight[next_day]["last_weight"]
+                    }
+                }
+            }
+
+            // Se nenhum dia do mês tiver peso registrado
+            async function hasWeight(weight) {
+                var has_weight = false;
+                for (var i in weight) {
+                    if (Object.keys(weight[i]).length !== 0) {
+                        has_weight = true;
+                        break;
+                    }
+                }
+                return has_weight;
+            }
+
+            var has_weight = await hasWeight(weight);
+            if (!has_weight) {
+                // Verifica se a data atual é maior que o ultimo dia do mês
+                var today = new Date();
+                // Itera pelos dias a partir do dia 1 do mês seguinte até encontrar um dia com peso registrado
+                // ou até chegar no dia atual
+                var next_year = parseInt(year);
+                var next_month = 1 + (parseInt(month) % 12);
+                if (next_month == 1) {
+                    year++;
+                }
+                while (
+                    next_year < today.getFullYear() ||
+                    (next_year == today.getFullYear() && next_month < today.getMonth() + 1) ||
+                    (next_year == today.getFullYear() && next_month == today.getMonth() + 1 && last_day < today.getDate())
+                ) {
+                    if (next_month < 10) {
+                        next_month = "0" + next_month;
+                    }
+                    var next_last_day = new Date(year, month, 0).getDate();
+                    for (var next_day = 1; next_day <= next_last_day; next_day++) {
+                        // Corrige o dia para o formato DD
+                        if (next_day < 10) {
+                            next_day = "0" + next_day;
+                        }
+                        // Pega o peso do dia posterior
+                        next_day = next_year + "-" + next_month + "-" + next_day;
+                        var next_weight = await getUserInfo(next_day, ["last_weight"]);
+                        // Se o dia posterior não tiver peso registrado
+                        if (Object.keys(next_weight).length == 0) {
+                            // Se encontrar um dia com peso registrado
+                        } else {
+                            // Preenche todos os dias do mês com o peso do dia encontrado
+                            for (var index in weight) {
+                                weight[index] = {
+                                    "weight": next_weight["last_weight"],
+                                    "last_weight": next_weight["last_weight"]
+                                }
+                            }
+                            return weight;
+                        }
+                        next_day = parseInt(next_day.slice(8, 10));
+                    }
+
+                    // Próximo mês
+                    next_month = 1 + (parseInt(next_month) % 12);
+                    if (next_month == 1) {
+                        next_year++;
+                    }
+                }
+
+                // Se não encontrar nenhum dia com peso registrado
+                // Pega as informações atuais do usuário
+                var user_info = await getUserCurrentInfo(["weight"]);
+                // Preenche todos os dias do mês com o peso atual do usuário
+                for (var index in weight) {
+                    weight[index] = {
+                        "weight": user_info["weight"],
+                        "last_weight": user_info["weight"]
+                    }
+                }
+            }
+
+            return weight;
+        }
+
+        // Obtém o ano e o mês atual
+        var curr_year = new Date().getFullYear();
+        var curr_month = new Date().getMonth() + 1;
+        // Preenche o gráfico de peso com os dados do mês atual
+        await monthpickerFunction(curr_year, curr_month)
+
+        async function getUserCurrentInfo(
+            infos = [
+                "weight",
+                "last_weight",
+                "daily_calories",
+                "carbs_percent",
+                "lipids_percent",
+                "protein_percent",
+                "tolerance",
+                "num_daily_plates"
+            ]
+        ) {
+            // Variável para os dados do usuário
+            var user_info = {};
+
+            // Recupera os dados do usuário
+            const docRef = doc(db, "user_info", user_uid);
+            await getDoc(docRef)
+                .then((docSnap) => {
+                    // Recupera os dados do documento (testes)
+                    if (docSnap.exists()) {
+                        var data = docSnap.data();
+                        for (var i = 0; i < infos.length; i++) {
+                            user_info[infos[i]] = data[infos[i]];
+                        }
+                    } else {
+                        console.log("No such document!");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao recuperar os dados:", error);
+                });
+
+            // Retorna os dados do usuário
+            return user_info;
+        }
+
+        // Função do monthpicker
+        async function monthpickerFunction(year, month) {
+            const plates = await getAllPlatesInMonth(year, month);
+            const nutritional_info_of_month = await getNutritionalInfoOfPlatesInMonth(plates);
+            const weight = await getWeightOfMonth(year, month);
+
+            var data_to_linechart = {};
+            // Itera pelos dias
+            for (var day_index in nutritional_info_of_month) {
+                var curr_nutritional_info = nutritional_info_of_month[day_index]; // Dia atual
+                var curr_weight = weight[day_index]; // Dia atual
+
+                // Adiciona a data
+                data_to_linechart[day_index] = {
+                    "Data": day_index
+                };
+
+                // Se o dia não tiver pratos, preenche os dados nutricionais com -1
+                if (Object.keys(curr_nutritional_info).length == 0) {
+                    for (var colum_index in nutritional_columns) {
+                        const colum = nutritional_columns[colum_index];
+                        data_to_linechart[day_index][colum] = -1;
+                    }
+
+                    data_to_linechart[day_index]
+                    // Se o dia tiver pratos, adiciona a informação nutricional
+                } else {
+                    for (var colum_index in nutritional_columns) {
+                        const colum = nutritional_columns[colum_index];
+                        data_to_linechart[day_index][colum] = curr_nutritional_info[colum];
+                    }
+                }
+
+                if (Object.keys(curr_weight).length == 0) { // Se o dia não tiver registro de peso
+                    data_to_linechart[day_index]["Peso"] = -1;
+                } else {
+                    // Adiciona o peso do dia
+                    data_to_linechart[day_index]["Peso"] = curr_weight["weight"]
+                }
+
+            }
+
+            // Altera os índeces para 0, 1, 2, ...
+            data_to_linechart = Object.values(data_to_linechart);
+
+            // Pega o elemento para os dados do linechart
+            var linechart_data = document.getElementById("micronutrientes_data");
+
+            // Insere os dados no elemento como JSON (substitui o conteúdo anterior)
+            linechart_data.value = JSON.stringify(data_to_linechart);
+
+            // Dispara o evento change para o elemento
+            var event = new Event("change");
+            linechart_data.dispatchEvent(event);
+
+            return data_to_linechart;
+        }
+
+
+        // Função para tra
+
+        // Lê os dados do csv archive/macronutrientes.csv
+        async function readCSV(file) {
+            // Lê o arquivo csv
+            var csv = await fetch(file);
+
+            // Converte o arquivo csv para texto
+            var text = await csv.text();
+
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].split(',');
+                const obj = {};
+
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = line[j];
+                }
+
+                result.push(obj);
+            }
+
+            return result;
+        }
 
     </script>
 
@@ -533,7 +1086,8 @@
         </div>
         <div class="col-md-1 center_col">
             <div class="row justify-content-center align-items-center">
-                <button type="button" class="btn btn-primary header_button" onclick="window.location.href='tutorial.html'">
+                <button type="button" class="btn btn-primary header_button"
+                    onclick="window.location.href='tutorial.html'">
                     Tutorial
                 </button>
             </div>
@@ -549,6 +1103,8 @@
 </header>
 
 <body>
+    <!-- Dados em json -->
+    <textarea id="micronutrientes_data" class="not_visible"></textarea>
 
     <!-- Tabs das páginas do app principal -->
     <div class="row">
@@ -583,21 +1139,21 @@
             <div class="not_visible">
                 <div class="principal_container">
                     <h2>Informações do usuário</h2>
-                    <div id="observablehq-inserts_cell-4dca14be"></div>
+                    <div id="observablehq-inserts_cell-6075c59b"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-4dca14be" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-6075c59b" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-4dca14be"></div>
+                <div id="observablehq-list_food_cell-6075c59b"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-4dca14be"></div>
+                <div id="observablehq-sliders_quantity_cell-6075c59b"></div>
             </div>
 
 
@@ -650,7 +1206,7 @@
 
 
                         <!-- Valor energético do prato -->
-                        <div id="observablehq-valor_energetico-4dca14be"></div>
+                        <div id="observablehq-valor_energetico-6075c59b"></div>
 
                         <br>
                         <br>
@@ -659,7 +1215,7 @@
                         <!-- Gráfico de pizza -->
                         <div class="fix_thin_width">
                             <div class="row justify-content-center">
-                                <div id="observablehq-div_pie_chart-4dca14be"></div>
+                                <div id="observablehq-div_pie_chart-6075c59b"></div>
                             </div>
                         </div>
 
@@ -690,12 +1246,12 @@
                         <div id="charts" class="">
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
-                                <div id="observablehq-violinplot_cell-4dca14be"></div>
+                                <div id="observablehq-violinplot_cell-6075c59b"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
-                                <div id="observablehq-bar_chart_cell-4dca14be"></div>
+                                <div id="observablehq-bar_chart_cell-6075c59b"></div>
                             </div>
                         </div>
                     </div>
@@ -717,6 +1273,10 @@
                         <div class="form-group">
                             <label for="weight">Peso (Kg)</label>
                             <input type="number" class="form-control" id="weight" placeholder="70.00">
+                        </div>
+                        <div class="form-group not_visible">
+                            <label for="last_weight">Último Peso (Kg)</label>
+                            <input type="number" class="form-control" id="last_weight" placeholder="-1">
                         </div>
                         <div class="form-group">
                             <label for="daily_calories">Calorias Diárias (Kcal)</label>
@@ -782,7 +1342,7 @@
                             <script
                                 src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
-                            <script>
+                            <!-- <script>
                                 $(document).ready(function () {
                                     // Inicialize o Monthpicker
                                     $("#monthpicker").datepicker({
@@ -790,9 +1350,21 @@
                                         minViewMode: "months",
                                         autoclose: false,
                                         altField: "#dateHidden",
+                                        onClose: function(dateText, inst) {
+                                            var selectedDate = $(this).datepicker("getDate");
+                                            var selectedMonth = $.datepicker.formatDate("mm", selectedDate);
+                                            // Outras ações que você deseja realizar quando o valor do monthpicker for alterado
+                                        }
+                                    }).on("changeDate", function (e) {
+                                        var selectedMonth = e.date.toISOString(); // Obtém o mês selecionado (adiciona +1 porque os meses em JavaScript são baseados em zero) 
+                                        var year = e.date.getFullYear(); // Obtém o ano selecionado
+                                        var month = e.date.getMonth() + 1; // Obtém o mês selecionado (adiciona +1 porque os meses em JavaScript são baseados em zero)
+                                        
+                                        monthpickerFunction(year, month);
+                                        // Outras ações que você deseja realizar quando o valor do monthpicker for alterado
                                     }).datepicker("show")
                                 });
-                            </script>
+                            </script> -->
                             <div class="container">
                                 <div class="input-group mt-3">
                                     <input type="text" id="monthpicker" class="form-control" placeholder="06/2023">
@@ -822,9 +1394,14 @@
                         </div>
                         <div class="row">
                             <!-- CSS do gráfico -->
-                            <div id="observablehq-css_grafico_de_peso-4dca14be"></div>
+                            <div id="observablehq-css_grafico_de_peso-6075c59b"></div>
                             <!-- Gráfico -->
-                            <div id="observablehq-chart_peso-4dca14be"></div>
+                            <div id="observablehq-chart_peso-6075c59b" class="not_visible"></div>
+                            <div id="linechart_weight"></div>
+                            <div id="linechart_carb"></div>
+                            <div id="linechart_protein"></div>
+                            <div id="linechart_lipid"></div>
+                            <div id="linechart_legend"></div>
                         </div>
                     </div>
                 </div>
@@ -923,17 +1500,17 @@
                                 <!-- Conteúdo da tab de gorduras -->
                                 <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
                                     aria-labelledby="gorduras-tab">
-                                    <div id="observablehq-lipids_cell-4dca14be"></div>
+                                    <div id="observablehq-lipids_cell-6075c59b"></div>
                                 </div>
                                 <!-- Conteúdo da tab de minerais -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <div id="observablehq-minerals_cell-4dca14be"></div>
+                                    <div id="observablehq-minerals_cell-6075c59b"></div>
                                 </div>
                                 <!-- Conteúdo da tab de vitaminas -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <div id="observablehq-vitamins_cell-4dca14be"></div>
+                                    <div id="observablehq-vitamins_cell-6075c59b"></div>
                                 </div>
                             </div>
                         </div>
@@ -946,30 +1523,39 @@
 
         <!-- Parte só últil no backend -->
         <div class="not_visible">
-            <div id="observablehq-init_bar_chart_cell-4dca14be"></div>
-            <div id="observablehq-outputs_alimentos-4dca14be"></div>
-            <div id="observablehq-filter_food_to_bar_chart-4dca14be"></div>
-            <div id="observablehq-alimentos_selecionados-4dca14be"></div>
-            <div id="observablehq-filtro_textual-4dca14be"></div>
-            <div id="observablehq-num_alimento-4dca14be"></div>
-            <div id="observablehq-botao_confirmar-4dca14be"></div>
-            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-4dca14be"></div>
-            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-4dca14be"></div>
-            <div id="observablehq-function_confirm_buttom-4dca14be"></div>
-            <div id="observablehq-update_dropdown-4dca14be"></div>
-            <div id="observablehq-update_dropdown_cell-4dca14be"></div>
-            <div id="observablehq-brush_cell-4dca14be"></div>
-            <div id="observablehq-violinplot_function_cell-4dca14be"></div>
-            <div id="observablehq-BarChart-4dca14be"></div>
-            <div id="observablehq-pallete-4dca14be"></div>
-            <div id="observablehq-add_on_change_to_textual_filter-4dca14be"></div>
-            <div id="observablehq-get_selected_foods-4dca14be"></div>
-            <div id="observablehq-highlight_foods-4dca14be"></div>
-            <div id="observablehq-highlight_color-4dca14be"></div>
-            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@2688">Projeto Final - Visualização de Dados
+            <div id="observablehq-init_bar_chart_cell-6075c59b"></div>
+            <div id="observablehq-outputs_alimentos-6075c59b"></div>
+            <div id="observablehq-filter_food_to_bar_chart-6075c59b"></div>
+            <div id="observablehq-alimentos_selecionados-6075c59b"></div>
+            <div id="observablehq-filtro_textual-6075c59b"></div>
+            <div id="observablehq-num_alimento-6075c59b"></div>
+            <div id="observablehq-botao_confirmar-6075c59b"></div>
+            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-6075c59b"></div>
+            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-6075c59b"></div>
+            <div id="observablehq-function_confirm_buttom-6075c59b"></div>
+            <div id="observablehq-update_dropdown-6075c59b"></div>
+            <div id="observablehq-update_dropdown_cell-6075c59b"></div>
+            <div id="observablehq-brush_cell-6075c59b"></div>
+            <div id="observablehq-violinplot_function_cell-6075c59b"></div>
+            <div id="observablehq-BarChart-6075c59b"></div>
+            <div id="observablehq-pallete-6075c59b"></div>
+            <div id="observablehq-add_on_change_to_textual_filter-6075c59b"></div>
+            <div id="observablehq-get_selected_foods-6075c59b"></div>
+            <div id="observablehq-highlight_foods-6075c59b"></div>
+            <div id="observablehq-highlight_color-6075c59b"></div>
+            <div id="observablehq-change_linechart-6075c59b"></div>
+            <div id="observablehq-LineChart3-6075c59b"></div>
+            <div id="observablehq-macros_faixas-6075c59b"></div>
+            <div id="observablehq-carboidratoFaixa-6075c59b"></div>
+            <div id="observablehq-proteinaFaixa-6075c59b"></div>
+            <div id="observablehq-gorduraFaixa-6075c59b"></div>
+            <div id="observablehq-LineChartMacros-6075c59b"></div>
+            <div id="observablehq-legenda-6075c59b"></div>
+            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@3605">Projeto Final - Visualização de Dados
                     by
-                    Bruno
-                    Pereira Fornaro</a></p>
+                    Bruno Pereira Fornaro
+                    add
+                    Vanessa Berwanger Wille</a></p>
         </div>
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
@@ -977,43 +1563,54 @@
         <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
         <script type="module">
             import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@3087.js?v=3";
+            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@3605.js?v=3";
             new Runtime().module(define, name => {
-                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-4dca14be"));
-                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-4dca14be"));
-                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-4dca14be"));
-                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-4dca14be"));
-                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-4dca14be"));
-                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-4dca14be"));
-                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-4dca14be"));
-                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-4dca14be"));
-                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-4dca14be"));
-                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-4dca14be"));
-                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-4dca14be"));
-                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-4dca14be"));
-                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-4dca14be"));
-                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-4dca14be"));
-                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-4dca14be"));
-                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-4dca14be"));
-                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-4dca14be"));
-                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-4dca14be"));
-                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-4dca14be"));
-                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-4dca14be"));
-                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-4dca14be"));
-                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-4dca14be"));
-                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-4dca14be"));
-                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-4dca14be"));
-                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-4dca14be"));
-                if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-4dca14be"));
-                if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-4dca14be"));
-                if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-4dca14be"));
-                if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-4dca14be"));
-                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-4dca14be"));
-                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-4dca14be"));
-                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-4dca14be"));
-                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-4dca14be"));
-                return ["add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
+                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-6075c59b"));
+                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-6075c59b"));
+                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-6075c59b"));
+                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-6075c59b"));
+                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-6075c59b"));
+                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-6075c59b"));
+                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-6075c59b"));
+                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-6075c59b"));
+                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-6075c59b"));
+                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-6075c59b"));
+                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-6075c59b"));
+                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-6075c59b"));
+                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-6075c59b"));
+                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-6075c59b"));
+                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-6075c59b"));
+                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-6075c59b"));
+                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-6075c59b"));
+                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-6075c59b"));
+                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-6075c59b"));
+                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-6075c59b"));
+                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-6075c59b"));
+                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-6075c59b"));
+                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-6075c59b"));
+                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-6075c59b"));
+                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-6075c59b"));
+                if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-6075c59b"));
+                if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-6075c59b"));
+                if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-6075c59b"));
+                if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-6075c59b"));
+                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-6075c59b"));
+                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-6075c59b"));
+                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-6075c59b"));
+                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-6075c59b"));
+                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-6075c59b"));
+                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-6075c59b"));
+                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-6075c59b"));
+                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-6075c59b"));
+                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-6075c59b"));
+                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-6075c59b"));
+                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-6075c59b"));
+                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-6075c59b"));
+                return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
 
             });
         </script>
+        <!-- Versão -->
+        <!-- id: 6075c59b -->
+        <!-- commit: 3605 -->
 </body>

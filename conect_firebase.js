@@ -33,7 +33,16 @@ const confirmar_elemente = document.getElementById('confirmar');
 confirmar_elemente.addEventListener('click', confirmar);
 
 // Ids dos campos em objetivos
-var fieldIds = ["weight", "daily_calories", "carbs_percent", "lipids_percent", "protein_percent", "tolerance", "num_daily_plates"];
+var fieldIds = [
+    "weight",
+    "last_weight", 
+    "daily_calories", 
+    "carbs_percent", 
+    "lipids_percent", 
+    "protein_percent", 
+    "tolerance", 
+    "num_daily_plates"
+];
 
 // Recupera os dados do usuário
 const docRef = doc(db, "user_info", user_uid);
@@ -70,9 +79,13 @@ function confirmar() {
         }
     });
 
+    // Pega o peso do usuário
+    
+
     // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
     setDoc(doc(db, "user_info", user_uid), {
         weight: data["weight"],
+        last_weight: data["last_weight"],
         daily_calories: data["daily_calories"],
         carbs_percent: data["carbs_percent"],
         lipids_percent: data["lipids_percent"],
@@ -92,6 +105,7 @@ function confirmar() {
     // Cria (ou atualiza) o documento para o usuário no Firestore (histórico)
     setDoc(doc(db, user_uid, curr_date_formated(), "user_info", "info"), {
         weight: data["weight"],
+        last_weight: data["last_weight"],
         daily_calories: data["daily_calories"],
         carbs_percent: data["carbs_percent"],
         lipids_percent: data["lipids_percent"],
@@ -124,7 +138,7 @@ confirmar_prato.addEventListener('click', async function () {
         var stop = false;
       
         while (!stop) {
-          console.log("Entrou no loop");
+        //   console.log("Entrou no loop");
       
           try {
             var docRef = doc(
@@ -142,13 +156,13 @@ confirmar_prato.addEventListener('click', async function () {
       
             if (docSnap.exists()) {
               num_pratos++;
-              console.log(num_pratos);
+            //   console.log(num_pratos);
             } else {
-              console.log("Parou o loop com " + num_pratos + " pratos");
+            //   console.log("Parou o loop com " + num_pratos + " pratos");
               stop = true;
             }
           } catch (error) {
-            console.error("Erro ao recuperar os dados:", error);
+            // console.error("Erro ao recuperar os dados:", error);
             stop = true;
           }
         }
@@ -159,10 +173,10 @@ confirmar_prato.addEventListener('click', async function () {
       var num_pratos = 0;
       // Chama a função assíncrona para obter o número de pratos
       await getNumberOfPlates().then(function (n) {
-        console.log("Número de pratos: " + n);
+        // console.log("Número de pratos: " + n);
         num_pratos = n;
       });
-      console.log("Número de pratos: " + num_pratos);
+    //   console.log("Número de pratos: " + num_pratos);
 
     // Itera pelos alimentos
     for (var i = 1; i <= qtd_alimentos; i++) {
@@ -174,7 +188,7 @@ confirmar_prato.addEventListener('click', async function () {
         // Verifica se o nome do alimento não é vazio
         if (nome_alimento) {
             // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
-            console.log("Vai ser inserido o alimento " + nome_alimento + " com quantidade " + quantidade_alimento + " no prato " + num_pratos)
+            // console.log("Vai ser inserido o alimento " + nome_alimento + " com quantidade " + quantidade_alimento + " no prato " + num_pratos)
             setDoc(doc(db, user_uid, curr_date_formated(), "plates", "" + num_pratos, "food", "" + i), {
                 name: nome_alimento,
                 quantity: quantidade_alimento,
