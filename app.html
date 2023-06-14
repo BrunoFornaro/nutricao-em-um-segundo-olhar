@@ -109,8 +109,204 @@
             console.log(user_uid);
         }
 
+        // Faz um click automático na tela
+        // Obtém uma referência para o botão
+        var button = document.getElementById('menos_alimentos');
+
+        // Cria um evento de clique
+        var clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+        });
+
+        // Simula o clique no botão
+        button.dispatchEvent(clickEvent);
+
+
+        const confirmar_elemente = document.getElementById('confirmar');
+        confirmar_elemente.addEventListener('click', confirmar);
+
+        // Ids dos campos em objetivos
+        var fieldIds = [
+            "weight",
+            "last_weight",
+            "daily_calories",
+            "carbs_percent",
+            "lipids_percent",
+            "protein_percent",
+            "tolerance",
+            "num_daily_plates"
+        ];
+
         // Recupera os dados do usuário
         const docRef = doc(db, "user_info", user_uid);
+        getDoc(docRef)
+            .then((docSnap) => {
+                // Recupera os dados do documento (testes)
+                if (docSnap.exists()) {
+                    if (docSnap.data()["initial"] == false) {
+                        fieldIds.forEach(function (fieldId) {
+                            // Define o valor do elemento como o valor no banco de dados
+                            document.getElementById(fieldId).value = docSnap.data()[fieldId];
+                        });
+                    }
+                } else {
+                    console.log("No such document!");
+                }
+            })
+            .catch((error) => {
+                console.error("Erro ao recuperar os dados:", error);
+            });
+
+
+
+        function confirmar() {
+            var data = {};
+
+            fieldIds.forEach(function (fieldId) {
+                var value = parseInt(document.getElementById(fieldId).value);
+                if (isNaN(value)) {
+                    var placeholder = document.getElementById(fieldId).placeholder;
+                    data[fieldId] = placeholder;
+                } else {
+                    data[fieldId] = value;
+                }
+            });
+
+            // Pega o peso do usuário
+
+
+            // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
+            setDoc(doc(db, "user_info", user_uid), {
+                weight: data["weight"],
+                last_weight: data["last_weight"],
+                daily_calories: data["daily_calories"],
+                carbs_percent: data["carbs_percent"],
+                lipids_percent: data["lipids_percent"],
+                protein_percent: data["protein_percent"],
+                tolerance: data["tolerance"],
+                num_daily_plates: data["num_daily_plates"],
+                initial: 0
+            })
+                .then(() => {
+                    console.log("Documento atualizado com sucesso!");
+                })
+                .catch((error) => {
+                    // Ocorreu um erro ao gravar no Firestore
+                    console.error("Erro ao criar o documento: ", error);
+                });
+
+            // Cria (ou atualiza) o documento para o usuário no Firestore (histórico)
+            setDoc(doc(db, user_uid, curr_date_formated(), "user_info", "info"), {
+                weight: data["weight"],
+                last_weight: data["last_weight"],
+                daily_calories: data["daily_calories"],
+                carbs_percent: data["carbs_percent"],
+                lipids_percent: data["lipids_percent"],
+                protein_percent: data["protein_percent"],
+                tolerance: data["tolerance"],
+                num_daily_plates: data["num_daily_plates"],
+                initial: 0
+            })
+                .then(() => {
+                    console.log("Documento atualizado com sucesso!");
+                })
+                .catch((error) => {
+                    // Ocorreu um erro ao gravar no Firestore
+                    console.error("Erro ao criar o documento: ", error);
+                });
+
+        }
+
+        // Botão de confirmar o prato
+        const confirmar_prato = document.getElementById('confirmar_prato');
+
+        // Adiciona um evento de clique ao botão de confirmar prato
+        confirmar_prato.addEventListener('click', async function () {
+            // Obtém a quantidade de alimentos no prato
+            var qtd_alimentos = document.getElementsByClassName('filtro_textual').length;
+
+            // Função assíncrona para recuperar o número de pratos do dia
+            async function getNumberOfPlates() {
+                var num_pratos = 0;
+                var stop = false;
+
+                while (!stop) {
+                    //   console.log("Entrou no loop");
+
+                    try {
+                        var docRef = doc(
+                            db,
+                            user_uid,
+                            curr_date_formated(),
+                            "plates",
+                            "" + num_pratos,
+                            "food",
+                            "1"
+                        );
+
+                        // Aguardar a conclusão da chamada assíncrona
+                        var docSnap = await getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            num_pratos++;
+                            //   console.log(num_pratos);
+                        } else {
+                            //   console.log("Parou o loop com " + num_pratos + " pratos");
+                            stop = true;
+                        }
+                    } catch (error) {
+                        // console.error("Erro ao recuperar os dados:", error);
+                        stop = true;
+                    }
+                }
+
+                return num_pratos;
+            }
+
+            var num_pratos = 0;
+            // Chama a função assíncrona para obter o número de pratos
+            await getNumberOfPlates().then(function (n) {
+                // console.log("Número de pratos: " + n);
+                num_pratos = n;
+            });
+            //   console.log("Número de pratos: " + num_pratos);
+
+            // Itera pelos alimentos
+            for (var i = 1; i <= qtd_alimentos; i++) {
+                // Obtém o nome do alimento
+                var nome_alimento = document.getElementById('filtro_textual_' + i).value;
+                // Obtém a quantidade do alimento
+                var quantidade_alimento = document.getElementById('slider_alimento_' + i).value;
+
+                // Verifica se o nome do alimento não é vazio
+                if (nome_alimento) {
+                    // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
+                    // console.log("Vai ser inserido o alimento " + nome_alimento + " com quantidade " + quantidade_alimento + " no prato " + num_pratos)
+                    setDoc(doc(db, user_uid, curr_date_formated(), "plates", "" + num_pratos, "food", "" + i), {
+                        name: nome_alimento,
+                        quantity: quantidade_alimento,
+                        // hora no formato hh:mm
+                        hour: curr_hour_formated()
+                    })
+                        .then(() => {
+                            console.log("Documento atualizado com sucesso!");
+                            getDataToTodayPage();
+                            fillPlatesList();
+                        }
+                        )
+                        .catch((error) => {
+                            // Ocorreu um erro ao gravar no Firestore
+                            console.error("Erro ao criar o documento: ", error);
+                        }
+                        );
+                }
+            }
+        });
+
+        /*
+        // Recupera os dados do usuário
         getDoc(docRef)
             .then((docSnap) => {
                 // Define os valores dos campos dos dados do usuário
@@ -124,6 +320,7 @@
             .catch((error) => {
                 console.error("Erro ao recuperar os dados:", error);
             });
+        */
 
         // Adiciona a função para adicionar mais seletores de alimentos ao botão "mais_alimentos"
         document.getElementById("mais_alimentos").addEventListener("click", add_selector);
@@ -156,13 +353,13 @@
             new_selector.innerHTML = `
                 <!-- Seletor ` + num + ` -->
                 <div class="row">
-                    <div class="col-md-auto">
+                    <div class="col-md-6">
                         <!-- Dropdown com a lista de alimentos junto do campo de filtro textual -->
                         <input type="search" list="lista_alimentos" id="filtro_textual_` + num + `" 
                         placeholder="Escolha um alimento :)" class="filtro_textual">
                         <datalist id="lista_alimentos"></datalist>
                     </div>
-                    <div class="col-md-auto">
+                    <div class="col-md-6">
                         <p id="alimento_` + num + `">
                             <input type="range" id="slider_alimento_` + num + `" value="0" min="0" max="300"
                                 oninput="this.nextElementSibling.value = this.value">
@@ -255,6 +452,7 @@
                 target.classList.remove('not_visible');
             });
         });
+
 
         // Seletores de tabs para os micro nutrientes
         var tabsPages = document.querySelectorAll('.today_tab.nav-link');
@@ -1056,6 +1254,65 @@
             return result;
         }
 
+
+        async function getDataToTodayPage() {
+            var date = curr_date_formated();
+            var plates_of_day = await getAllPlates(date);
+            var plates_nutritional_info = await getNutritionalInfoOfPlates(plates_of_day);
+
+            if (Object.keys(plates_nutritional_info).length == 0) {
+                for (let index in nutritional_columns) {
+                    plates_nutritional_info[nutritional_columns[index]] = 0;
+                }
+            }
+
+            var minerals_data = [{
+                "Cobre (mg)": plates_nutritional_info["Cobre (mg)"],
+                "Ferro (mg)": plates_nutritional_info["Ferro (mg)"],
+                "Fósforo (mg)": plates_nutritional_info["Fósforo (mg)"],
+                "Manganês (mg)": plates_nutritional_info["Manganês (mg)"],
+                "Sódio (mg)": plates_nutritional_info["Sódio (mg)"],
+                "Zinco (mg)": plates_nutritional_info["Zinco (mg)"]
+            }]
+
+            var vitamins_data = [{
+                "Tiamina (mg)": plates_nutritional_info["Tiamina (mg)"],
+                "Riboflavina (mg)": plates_nutritional_info["Riboflavina (mg)"],
+                "Piridoxina (mg)": plates_nutritional_info["Piridoxina (mg)"],
+                "Niacina (mg)": plates_nutritional_info["Niacina (mg)"],
+                "Vitamina C (mg)": plates_nutritional_info["Vitamina C (mg)"],
+                "Retinol(µg)": plates_nutritional_info["Retinol(µg)"],
+            }]
+
+            var fat_data = [{
+                'Saturados (g)': plates_nutritional_info['Saturados (g)'],
+                "Monoinsaturados (g)": plates_nutritional_info["Monoinsaturados (g)"],
+                "Poliinsaturados (g)": plates_nutritional_info["Poliinsaturados (g)"],
+            }]
+
+            // Converte os dados para JSON
+            minerals_data = JSON.stringify(minerals_data);
+            vitamins_data = JSON.stringify(vitamins_data);
+            fat_data = JSON.stringify(fat_data);
+
+            // Pega os elementos para os dados dos gráficos
+            var minerals_data_element = document.getElementById("minerals_data");
+            var vitamins_data_element = document.getElementById("vitamins_data");
+            var fat_data_element = document.getElementById("fat_data");
+
+            // Insere os dados nos elementos como JSON (substitui o conteúdo anterior)
+            minerals_data_element.value = minerals_data;
+            vitamins_data_element.value = vitamins_data;
+            fat_data_element.value = fat_data;
+
+            // Dispara o evento change para os elementos
+            var event = new Event("change");
+            minerals_data_element.dispatchEvent(event);
+            vitamins_data_element.dispatchEvent(event);
+            fat_data_element.dispatchEvent(event);
+        }
+        getDataToTodayPage();
+
     </script>
 
     <!-- Importa o script feito de conexão com o firebase (módulo) -->
@@ -1067,14 +1324,18 @@
 
     <!-- Título da página -->
     <div class="row justify-content-center principal_container">
-        <div class="col-md-3">
+        <div class="col-md-1">
         </div>
-        <div class="col-md-6">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-1">
+            <!-- Logo da página -->
+            <img src="img/logo_sem_fundo.png" alt="Logo" class="logo" id="logo">
+        </div>
+        <div class="col-md-6 justify-content-center align-items-center" style="display:flex;">
             <div class="row justify-content-center align-items-center">
-                <!-- Logo da página -->
-                <img src="img/logo_sem_fundo.png" alt="Logo" class="logo" id="logo">
                 <!-- Título -->
-                <h1>NUTRIÇÃO EM UM OLHAR</h1>
+                <h1 style="margin-bottom: 0px;">NUTRIÇÃO EM UM OLHAR</h1>
             </div>
         </div>
         <div class="col-md-1 center_col">
@@ -1105,27 +1366,33 @@
 <body>
     <!-- Dados em json -->
     <textarea id="micronutrientes_data" class="not_visible"></textarea>
+    <textarea id="vitamins_data" class="not_visible"></textarea>
+    <textarea id="fat_data" class="not_visible"></textarea>
+    <textarea id="minerals_data" class="not_visible"></textarea>
 
     <!-- Tabs das páginas do app principal -->
     <div class="row">
-        <div class="col-md-12 principal_container">
-            <ul class="nav nav-pills">
-                <li class="nav-item">
-                    <a class="tabs_pages nav-link" href="#content_dados_do_usuario" id="tab_dados_do_usuario"
-                        type="button">Dados</a>
-                </li>
-                <li class="nav-item">
-                    <a class="tabs_pages nav-link active" href="#content_selecao_prato" id="tab_selecao_prato"
-                        type="button">Prato</a>
-                </li>
-                <li class="nav-item">
-                    <a class="tabs_pages nav-link" href="#content_peso" id="tab_peso" type="button">Peso</a>
-                </li>
-                <li class="nav-item">
-                    <a class="tabs_pages nav-link" href="#content_pratos_do_dia" id="tab_pratos_do_dia"
-                        type="button">Hoje</a>
-                </li>
-            </ul>
+        <div class="col-md-12 ">
+            <div class="principal_container">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="tabs_pages nav-link" href="#content_dados_do_usuario" id="tab_dados_do_usuario"
+                            type="button">Dados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="tabs_pages nav-link active" href="#content_selecao_prato" id="tab_selecao_prato"
+                            type="button">Prato</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="tabs_pages nav-link" href="#content_peso" id="tab_peso" type="button">Peso</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="tabs_pages nav-link" href="#content_pratos_do_dia" id="tab_pratos_do_dia"
+                            type="button">Hoje</a>
+                    </li>
+                </ul>
+
+            </div>
 
         </div>
     </div>
@@ -1138,22 +1405,22 @@
             <!-- Área para inserir informações do usuário -->
             <div class="not_visible">
                 <div class="principal_container">
-                    <h2>Informações do usuário</h2>
-                    <div id="observablehq-inserts_cell-6075c59b"></div>
+                    <h3>Informações do usuário</h3>
+                    <div id="observablehq-inserts_cell-db1bfa4f"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-6075c59b" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-db1bfa4f" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-6075c59b"></div>
+                <div id="observablehq-list_food_cell-db1bfa4f"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-6075c59b"></div>
+                <div id="observablehq-sliders_quantity_cell-db1bfa4f"></div>
             </div>
 
 
@@ -1162,19 +1429,19 @@
                 <div class="col-md-6 fix_height">
                     <div class="principal_container fix_thin_width">
                         <div class="row">
-                            <div class="col-md-7">
-                                <h2>Monte sua refeição:</h2>
+                            <div class="col-md-12">
+                                <h3>Monte sua refeição:</h3>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-12">
                                 <div class="row justify-content-center">
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <button class="btn btn-success" type="button" id="confirmar_prato">Salvar
                                             Prato</button>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <button class="btn btn-primary" type="button" id="mais_alimentos">+</button>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <button class="btn btn-primary" type="button" id="menos_alimentos">-</button>
                                     </div>
                                 </div>
@@ -1185,13 +1452,13 @@
                         <div id="alimentos_do_prato">
                             <!-- Seletor 1 -->
                             <div class="row">
-                                <div class="col-md-auto">
+                                <div class="col-md-6">
                                     <!-- Dropdown com a lista de alimentos junto do campo de filtro textual -->
                                     <input type="search" list="lista_alimentos" id="filtro_textual_1"
                                         placeholder="Escolha um alimento :)" class="filtro_textual">
                                     <datalist id="lista_alimentos"></datalist>
                                 </div>
-                                <div class="col-md-auto">
+                                <div class="col-md-6">
                                     <p id="alimento_1">
                                         <input type="range" id="slider_alimento_1" value="0" min="0" max="300"
                                             oninput="this.nextElementSibling.value = this.value">
@@ -1206,7 +1473,7 @@
 
 
                         <!-- Valor energético do prato -->
-                        <div id="observablehq-valor_energetico-6075c59b"></div>
+                        <div id="observablehq-valor_energetico-db1bfa4f"></div>
 
                         <br>
                         <br>
@@ -1215,7 +1482,7 @@
                         <!-- Gráfico de pizza -->
                         <div class="fix_thin_width">
                             <div class="row justify-content-center">
-                                <div id="observablehq-div_pie_chart-6075c59b"></div>
+                                <div id="div_pie_chart"></div>
                             </div>
                         </div>
 
@@ -1229,7 +1496,7 @@
 
                     <!-- Tabs dos gráfico -->
                     <div class="principal_container fix_thin_width">
-                        <h2>Filtro e Macronutrientes do Prato</h2>
+                        <h3>Filtro e Macronutrientes do Prato</h3>
                         <div class="">
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
@@ -1246,12 +1513,12 @@
                         <div id="charts" class="">
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
-                                <div id="observablehq-violinplot_cell-6075c59b"></div>
+                                <div id="observablehq-violinplot_cell-db1bfa4f"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
-                                <div id="observablehq-bar_chart_cell-6075c59b"></div>
+                                <div id="observablehq-bar_chart_cell-db1bfa4f"></div>
                             </div>
                         </div>
                     </div>
@@ -1319,14 +1586,31 @@
             <!-- Aba de Peso do usuário -->
             <div class="row">
                 <!-- Seletor da data -->
-                <div class="col-md-4 fix_height">
-                    <div class="principal_container">
+                <!-- <div class="col-md-12 ">
 
-                        <!-- Seletor da data -->
-                        <div class="row  ">
-                            <h2 class="container">
-                                Selecione a data
-                            </h2>
+                    <!-/- Seletor da data -/->
+                <div class="row  principal_container align-items-center">
+
+                </div>
+            </div> -->
+            <!-- Gráfico de peso -->
+            <div class="col-md-12">
+                <!-- Gráfico de peso -->
+                <div class="row principal_container">
+                    <div class="col-md-12">
+                        <h3>
+                            Evolução do mês
+                        </h3>
+                    </div>
+
+                    <!-- Seletor da data -->
+                    <div class="col-md-auto align-items-center">
+                        <h4 class="">
+                            Selecione a data:
+                        </h4>
+                    </div>
+                    <div class="col-md-3 ">
+                        <div class="row align-items-center">
 
                             <!-- Adicione os scripts do Bootstrap e do jQuery -->
                             <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1365,65 +1649,58 @@
                                     }).datepicker("show")
                                 });
                             </script> -->
-                            <div class="container">
-                                <div class="input-group mt-3">
-                                    <input type="text" id="monthpicker" class="form-control" placeholder="06/2023">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                                    </div>
+                            <div class="input-group">
+                                <input type="text" id="monthpicker" class="form-control" placeholder="06/2023">
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <style>
                                 .datepicker.datepicker-dropdown.dropdown-menu.datepicker-orient-left.datepicker-orient-top {
-                                    left: 287px !important;
-                                    top: 470px !important;
+                                    left: 470px !important;
+                                    top: 625px !important;
                                 }
                             </style>
 
                         </div>
                     </div>
-                </div>
-                <!-- Gráfico de peso -->
-                <div class="col-md-8">
-                    <!-- Gráfico de peso -->
-                    <div class="principal_container">
-                        <div class="row">
-                            <h2>
-                                Evolução do mês
-                            </h2>
-                        </div>
-                        <div class="row">
+
+
+
+                    <div class="col-md-12">
+                        <div class="row justify-content-center">
                             <!-- CSS do gráfico -->
-                            <div id="observablehq-css_grafico_de_peso-6075c59b"></div>
+                            <div id="observablehq-css_grafico_de_peso-db1bfa4f"></div>
                             <!-- Gráfico -->
-                            <div id="observablehq-chart_peso-6075c59b" class="not_visible"></div>
+                            <div id="observablehq-chart_peso-db1bfa4f" class="not_visible"></div>
+                            <div id="linechart_legend"></div>
                             <div id="linechart_weight"></div>
                             <div id="linechart_carb"></div>
                             <div id="linechart_protein"></div>
                             <div id="linechart_lipid"></div>
-                            <div id="linechart_legend"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Aba de Refeições do dia -->
-        <div class="tabs_pages tab-pane fade not_visible" id="content_pratos_do_dia" role="tabpanel"
-            aria-labelledby="tab_pratos_do_dia">
-            <div class="row">
-                <div class="col-md-6 fix_height">
-                    <div class="principal_container fix_thin_width">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <h2>Refeições de hoje</h2>
-                            </div>
+    <!-- Aba de Refeições do dia -->
+    <div class="tabs_pages tab-pane fade not_visible" id="content_pratos_do_dia" role="tabpanel"
+        aria-labelledby="tab_pratos_do_dia">
+        <div class="row">
+            <div class="col-md-6 fix_height">
+                <div class="principal_container fix_thin_width">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>Refeições de hoje</h3>
                         </div>
-                        <div class="lista_pratos_do_dia" id="lista_pratos_do_dia">
-                            <!-- Lista de pratos do dia (preenchida por javascript) -->
+                    </div>
+                    <div class="lista_pratos_do_dia" id="lista_pratos_do_dia">
+                        <!-- Lista de pratos do dia (preenchida por javascript) -->
 
-                            <!-- Teste preenchido a mão -->
-                            <!-- <div class="plates_container">
+                        <!-- Teste preenchido a mão -->
+                        <!-- <div class="plates_container">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <h3>
@@ -1469,148 +1746,151 @@
                                 </div>
                             </div> -->
 
-                        </div>
                     </div>
                 </div>
-                <!-- Aba dos gráficos dos micronutrientes -->
-                <div class="col-md-6 fix_height">
-                    <div class="principal_container fix_thin_width">
-                        <h2>Micronutrientes</h2>
-                        <!-- Nav-items para gorduras, minerais e vitaminas -->
-                        <ul class="nav nav-tabs today_tab" id="today_tab" role="tablist">
-                            <li class="nav-item today_tab" role="presentation" id="tab_gorduras">
-                                <a class="nav-link active today_tab" id="gorduras-tab" data-toggle="tab"
-                                    href="#content_gorduras" role="tab" aria-controls="content_gorduras"
-                                    aria-selected="true">Gorduras</a>
-                            </li>
-                            <li class="nav-item today_tab" role="presentation" id="tab_minerais">
-                                <a class="nav-link today_tab" id="minerais-tab" data-toggle="tab"
-                                    href="#content_minerais" role="tab" aria-controls="content_minerais"
-                                    aria-selected="false">Minerais</a>
-                            </li>
-                            <li class="nav-item today_tab" role="presentation" id="tab_vitaminas">
-                                <a class="nav-link today_tab" id="vitaminas-tab" data-toggle="tab"
-                                    href="#content_vitaminas" role="tab" aria-controls="content_vitaminas"
-                                    aria-selected="false">Vitaminas</a>
-                            </li>
-                        </ul>
-                        <!-- Conteúdo das tabs das gorduras, minerais e vitaminas -->
-                        <div>
-                            <div class="tab-content" id="myTabContent">
-                                <!-- Conteúdo da tab de gorduras -->
-                                <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
-                                    aria-labelledby="gorduras-tab">
-                                    <div id="observablehq-lipids_cell-6075c59b"></div>
-                                </div>
-                                <!-- Conteúdo da tab de minerais -->
-                                <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
-                                    aria-labelledby="minerais-tab">
-                                    <div id="observablehq-minerals_cell-6075c59b"></div>
-                                </div>
-                                <!-- Conteúdo da tab de vitaminas -->
-                                <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
-                                    aria-labelledby="minerais-tab">
-                                    <div id="observablehq-vitamins_cell-6075c59b"></div>
-                                </div>
+            </div>
+            <!-- Aba dos gráficos dos micronutrientes -->
+            <div class="col-md-6 fix_height">
+                <div class="principal_container fix_thin_width">
+                    <h3>Micronutrientes</h3>
+                    <!-- Nav-items para gorduras, minerais e vitaminas -->
+                    <ul class="nav nav-tabs today_tab" id="today_tab" role="tablist">
+                        <li class="nav-item today_tab" role="presentation" id="tab_gorduras">
+                            <a class="nav-link active today_tab" id="gorduras-tab" data-toggle="tab"
+                                href="#content_gorduras" role="tab" aria-controls="content_gorduras"
+                                aria-selected="true">Gorduras</a>
+                        </li>
+                        <li class="nav-item today_tab" role="presentation" id="tab_minerais">
+                            <a class="nav-link today_tab" id="minerais-tab" data-toggle="tab" href="#content_minerais"
+                                role="tab" aria-controls="content_minerais" aria-selected="false">Minerais</a>
+                        </li>
+                        <li class="nav-item today_tab" role="presentation" id="tab_vitaminas">
+                            <a class="nav-link today_tab" id="vitaminas-tab" data-toggle="tab" href="#content_vitaminas"
+                                role="tab" aria-controls="content_vitaminas" aria-selected="false">Vitaminas</a>
+                        </li>
+                    </ul>
+                    <!-- Conteúdo das tabs das gorduras, minerais e vitaminas -->
+                    <div>
+                        <div class="tab-content" id="myTabContent">
+                            <!-- Conteúdo da tab de gorduras -->
+                            <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
+                                aria-labelledby="gorduras-tab">
+                                <!-- <div id="observablehq-lipids_cell-db1bfa4f"></div> -->
+                                <div id="fat_graph_div"></div>
+                            </div>
+                            <!-- Conteúdo da tab de minerais -->
+                            <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
+                                aria-labelledby="minerais-tab">
+                                <!-- <div id="observablehq-minerals_cell-db1bfa4f"></div> -->
+                                <div id="minerals_graph_div"></div>
+                            </div>
+                            <!-- Conteúdo da tab de vitaminas -->
+                            <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
+                                aria-labelledby="minerais-tab">
+                                <!-- <div id="observablehq-vitamins_cell-db1bfa4f"></div> -->
+                                <div id="vitamins_graph_div"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
 
 
-        <!-- Parte só últil no backend -->
-        <div class="not_visible">
-            <div id="observablehq-init_bar_chart_cell-6075c59b"></div>
-            <div id="observablehq-outputs_alimentos-6075c59b"></div>
-            <div id="observablehq-filter_food_to_bar_chart-6075c59b"></div>
-            <div id="observablehq-alimentos_selecionados-6075c59b"></div>
-            <div id="observablehq-filtro_textual-6075c59b"></div>
-            <div id="observablehq-num_alimento-6075c59b"></div>
-            <div id="observablehq-botao_confirmar-6075c59b"></div>
-            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-6075c59b"></div>
-            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-6075c59b"></div>
-            <div id="observablehq-function_confirm_buttom-6075c59b"></div>
-            <div id="observablehq-update_dropdown-6075c59b"></div>
-            <div id="observablehq-update_dropdown_cell-6075c59b"></div>
-            <div id="observablehq-brush_cell-6075c59b"></div>
-            <div id="observablehq-violinplot_function_cell-6075c59b"></div>
-            <div id="observablehq-BarChart-6075c59b"></div>
-            <div id="observablehq-pallete-6075c59b"></div>
-            <div id="observablehq-add_on_change_to_textual_filter-6075c59b"></div>
-            <div id="observablehq-get_selected_foods-6075c59b"></div>
-            <div id="observablehq-highlight_foods-6075c59b"></div>
-            <div id="observablehq-highlight_color-6075c59b"></div>
-            <div id="observablehq-change_linechart-6075c59b"></div>
-            <div id="observablehq-LineChart3-6075c59b"></div>
-            <div id="observablehq-macros_faixas-6075c59b"></div>
-            <div id="observablehq-carboidratoFaixa-6075c59b"></div>
-            <div id="observablehq-proteinaFaixa-6075c59b"></div>
-            <div id="observablehq-gorduraFaixa-6075c59b"></div>
-            <div id="observablehq-LineChartMacros-6075c59b"></div>
-            <div id="observablehq-legenda-6075c59b"></div>
-            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@3605">Projeto Final - Visualização de Dados
-                    by
-                    Bruno Pereira Fornaro
-                    add
-                    Vanessa Berwanger Wille</a></p>
-        </div>
+    <!-- Parte só últil no backend -->
+    <div class="not_visible">
+        <div id="observablehq-init_bar_chart_cell-db1bfa4f"></div>
+        <div id="observablehq-outputs_alimentos-db1bfa4f"></div>
+        <div id="observablehq-filter_food_to_bar_chart-db1bfa4f"></div>
+        <div id="observablehq-alimentos_selecionados-db1bfa4f"></div>
+        <div id="observablehq-filtro_textual-db1bfa4f"></div>
+        <div id="observablehq-num_alimento-db1bfa4f"></div>
+        <div id="observablehq-botao_confirmar-db1bfa4f"></div>
+        <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-db1bfa4f"></div>
+        <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-db1bfa4f"></div>
+        <div id="observablehq-function_confirm_buttom-db1bfa4f"></div>
+        <div id="observablehq-update_dropdown-db1bfa4f"></div>
+        <div id="observablehq-update_dropdown_cell-db1bfa4f"></div>
+        <div id="observablehq-brush_cell-db1bfa4f"></div>
+        <div id="observablehq-violinplot_function_cell-db1bfa4f"></div>
+        <div id="observablehq-BarChart-db1bfa4f"></div>
+        <div id="observablehq-pallete-db1bfa4f"></div>
+        <div id="observablehq-add_on_change_to_textual_filter-db1bfa4f"></div>
+        <div id="observablehq-get_selected_foods-db1bfa4f"></div>
+        <div id="observablehq-highlight_foods-db1bfa4f"></div>
+        <div id="observablehq-highlight_color-db1bfa4f"></div>
+        <div id="observablehq-change_linechart-db1bfa4f"></div>
+        <div id="observablehq-LineChart3-db1bfa4f"></div>
+        <div id="observablehq-macros_faixas-db1bfa4f"></div>
+        <div id="observablehq-carboidratoFaixa-db1bfa4f"></div>
+        <div id="observablehq-proteinaFaixa-db1bfa4f"></div>
+        <div id="observablehq-gorduraFaixa-db1bfa4f"></div>
+        <div id="observablehq-LineChartMacros-db1bfa4f"></div>
+        <div id="observablehq-legenda-db1bfa4f"></div>
+        <div id="observablehq-atualize_micronutrients-db1bfa4f"></div>
+        <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4363">Projeto Final - Visualização de Dados
+                by
+                Bruno Pereira Fornaro
+                add
+                Vanessa Berwanger Wille</a></p>
+    </div>
 
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
 
-        <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
-        <script type="module">
-            import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@3605.js?v=3";
-            new Runtime().module(define, name => {
-                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-6075c59b"));
-                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-6075c59b"));
-                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-6075c59b"));
-                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-6075c59b"));
-                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-6075c59b"));
-                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-6075c59b"));
-                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-6075c59b"));
-                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-6075c59b"));
-                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-6075c59b"));
-                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-6075c59b"));
-                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-6075c59b"));
-                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-6075c59b"));
-                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-6075c59b"));
-                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-6075c59b"));
-                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-6075c59b"));
-                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-6075c59b"));
-                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-6075c59b"));
-                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-6075c59b"));
-                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-6075c59b"));
-                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-6075c59b"));
-                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-6075c59b"));
-                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-6075c59b"));
-                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-6075c59b"));
-                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-6075c59b"));
-                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-6075c59b"));
-                if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-6075c59b"));
-                if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-6075c59b"));
-                if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-6075c59b"));
-                if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-6075c59b"));
-                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-6075c59b"));
-                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-6075c59b"));
-                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-6075c59b"));
-                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-6075c59b"));
-                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-6075c59b"));
-                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-6075c59b"));
-                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-6075c59b"));
-                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-6075c59b"));
-                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-6075c59b"));
-                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-6075c59b"));
-                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-6075c59b"));
-                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-6075c59b"));
-                return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
+    <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
+    <script type="module">
+        import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
+        import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4363.js?v=3";
+        new Runtime().module(define, name => {
+            if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-db1bfa4f"));
+            if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-db1bfa4f"));
+            if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-db1bfa4f"));
+            if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-db1bfa4f"));
+            if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-db1bfa4f"));
+            if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-db1bfa4f"));
+            if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-db1bfa4f"));
+            if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-db1bfa4f"));
+            if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-db1bfa4f"));
+            if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-db1bfa4f"));
+            if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-db1bfa4f"));
+            if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-db1bfa4f"));
+            if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-db1bfa4f"));
+            if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-db1bfa4f"));
+            if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-db1bfa4f"));
+            if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-db1bfa4f"));
+            if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-db1bfa4f"));
+            if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-db1bfa4f"));
+            if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-db1bfa4f"));
+            if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-db1bfa4f"));
+            if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-db1bfa4f"));
+            if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-db1bfa4f"));
+            if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-db1bfa4f"));
+            if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-db1bfa4f"));
+            if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-db1bfa4f"));
+            //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-db1bfa4f"));
+            //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-db1bfa4f"));
+            //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-db1bfa4f"));
+            //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-db1bfa4f"));
+            if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-db1bfa4f"));
+            if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-db1bfa4f"));
+            if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-db1bfa4f"));
+            if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-db1bfa4f"));
+            if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-db1bfa4f"));
+            if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-db1bfa4f"));
+            if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-db1bfa4f"));
+            if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-db1bfa4f"));
+            if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-db1bfa4f"));
+            if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-db1bfa4f"));
+            if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-db1bfa4f"));
+            if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-db1bfa4f"));
+            if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-db1bfa4f"));
+            return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
 
-            });
-        </script>
-        <!-- Versão -->
-        <!-- id: 6075c59b -->
-        <!-- commit: 3605 -->
+        });
+    </script>
+    <!-- Versão -->
+    <!-- id: db1bfa4f -->
+    <!-- commit: 4363 -->
 </body>
