@@ -127,16 +127,22 @@
     <!-- Como utilizar a ferramenta -->
     <div class="principal_container">
         <h2>Como utilizar a ferramenta</h2>
+        <br>
         <ul id="como_utilizar">
-            <li>Começamos informando alguns dados iniciais do usuário (caso não forem preenchidos, serão usados os dados
-                padrão):</li>
-            <ul>
+            <h4>Dados pessoais</h4>
+            <p>
+             Começamos informando alguns dados iniciais do usuário (caso não forem preenchidos, serão usados os dados
+                padrão):
+            </p>
                 <li>
                     Peso: o peso do usuário em quilogramas (kg);
                 </li>
+
                 <li>
-                    Número de refeições: o número de refeições que o usuário faz por dia (por padrão, 3);
+                    Calorias diárias: a quantidade de calorias que o usuário deseja consumir em um dia (por padrão, 
+                    2000 Kcal)
                 </li>
+
                 <li>
                     Quantidade de proteínas por quilograma: a quantidade de proteínas em gramas que o usuário deseja
                     consumir por Kg de massa corporal em um dia (por padrão, 1.0g);
@@ -157,38 +163,95 @@
                     Tolerância: margem de erro na alimentação (Tolerância igual a 10% significa que a alimentação pode
                     ter até 10% a mais ou a menos do que o desejado).
                 </li>
-            </ul>
-            <li>Com isso, podemos selecionar até 3 alimentos para uma refeição, os quais podem ser filtrados por:</li>
-            <ul>
-                <li>Texto: você pode inserir um texto para filtrar a lista com apenas os alimentos que contém aquela
-                    porção de texto (como uma palavra em específico, por exemplo),</li>
-                <li>Gráfico de violino (na esquerda): você pode selecionar uma porção do gráfico de violino (com a
-                    função de "brush") para filtrar a lista
-                    com apenas os alimentos que contém aquela porção de macronutrientes (a intersecção dos filtros).
+                <li>
+                    Número de refeições: o número de refeições que o usuário faz por dia (por padrão, 3);
                 </li>
-            </ul>
-            <li>Após escolher um alimento, devemos escolher qual dos alimentos estamos escolhendo (1, 2 ou 3), para
-                isso, utilizamos o dropdown ao lado do que seleciona o alimento;</li>
-            <li>Após escolher um alimento e qual sua "posição" no prato, devemos clicar no botão de confirmar para
-                atualizar os dados com a escolha (após isso podemos reiniciar o processo e escolher os outros alimentos,
-                até formar o prato com até 3 alimentos),</li>
-            <li>Após selecionar todos os alimentos do prato, é necessário indicar a quantidade de cada um deles que será
-                consumida na
-                refeição
-                (por padrão, 50g), para isso, temos um slider que nos permite variar a quantidade desejada.</li>
-        </ul>
-        <p>Com isso, conseguimos ver pelo gráfico de barras (à direita), a partir das cores, se a refeição está
-            balanceada ou não, sendo: verde para balanceada, vermelho para
-            excesso do macronutriente e amerelo para falta do macronutriente na refeição.</p>
-        <p>Vale lembrar que alguns valores padrão foram definidos, com base nas opiniões de alguns nutricionistas que
-            foram indicados em fontes já citadas anteriormente. Esses valores podem ser alterados pelo usuário, caso ele
-            tenha outra recomendação de alimentação (dado que isso pode variar de acordo com o objetivo do usuário
-            também).</p>
+
+            <br>
+
+            <h4>Montagem do prato </h4>
+                <p>
+                Existem alguns recursos de filtragem, comparação e seleção
+                 que facilitam a montagem de um prato:
+                </p>
+                    <li>Filtro po texto: você pode inserir um texto para filtrar a lista com apenas os alimentos que contém aquela
+                        porção de texto (como uma palavra em específico, por exemplo),</li>
+                    <li>Gráfico de violino (na esquerda): você pode selecionar uma porção do gráfico de violino (com a
+                        função de "brush") para filtrar a lista
+                        com apenas os alimentos que contém aquela porção de macronutrientes (a intersecção dos filtros).
+                    Além disso,  esse gráfico é separado por intervalos. Ao passar o mouse por cima 
+                        de cada faixa, é possível ver a quantidade de alimentos que estão incluídos nela e, ao selecioná-la, 
+                        por meio de uma matriz de pontos, podemos ver quais são esses alimentos, bem 
+                        como suas informações nutricionais em relação aos macronutrientes a partir de um gráfico
+                        de barras. Caso deseje incluir um dos alimentos da matriz de pontos em sua refeição, basta clicar 
+                        no alimento desejado. Além disso, ao selecionar um alimento, o gráfico de violino é atualizado para
+                        mostrar em quais faixas de cada macronutriente ele se encontra.
+                    </li>
+
+            <br>
+
+            <p>Após selecionar os alimentos é necessário indicar a quantidade de cada um deles que será
+                consumida na refeição, para isso, temos um slider que nos permite variar a quantidade desejada. Ao atualizar esses 
+                valores, o sistema nos retorna um:
+            </p>
+            <li>
+                Gráfico de pizza (prato): nos dá um panorama geral de como a refeição está sendo montada por meio de imagens
+                dos alimentos selecionados e, por meio de uma tooltip, os macronutrientes de cada alimento.
+            </li>
+            <li>
+                Gráfico de barras (distribuição dos macronutrientes): mostra, a partir das cores, se 
+                a refeição está balanceada ou não, sendo: verde para balanceada, vermelho para
+                excesso do macronutriente e amerelo para falta do macronutriente na refeição. Além disso, apresneta um
+                 range para ajudar o usuário a notar onde ocorre a adequação dos macronutrientes.
+
+            Com a refeição ajustada, clique no botão "salvar prato" para
+                atualizar os dados da alimentação diária</li>
+
+            <br>
+
+            <h4>Dados de Hoje</h4>
+            <p>
+                Nessa aba, podemos ver como está sendo a alimentação do usuário no dia. Para isso, temos:
+                <li>
+                    Gráfico de barras dos macronutrientes:
+                    Possui a mesma forma do gráfico de barras que mostra a distribuição dos macronutrientes em uma refeição, 
+                    contudo, com a soma dos valores de todas as refeições do dia.
+                </li>
+                <li>
+                    Gráfico de barras do consumo de lipídeos: mostra a quantidade de gorduras saturadas, monoinsaturadas 
+                    e poliinsaturadas consumidas no dia. A linha indica os limites de consumo recomendados pela OMS.
+                </li>
+
+                <li>
+                    Gráficos de micronutrientes (minerais e vitaminas): mostra a proporção de cada micronutriente consumido
+                    no dia em relação aos valores de Ingestão Diária Recomendada (IDR).
+                </li>
+
+            </p>
+
+            <br>
+
+            <h4>Dados do mês</h4>
+            Apresenta um gráfico de linha mensal que relaciona o peso corporal e a ingestão de cada macronutriente. Visualização 
+            útil para acompanhar e compreender a relação entre a alimentação e o peso ao longo do tempo. Existem tooltips que
+            mostram os valores de cada ponto do gráfico e no intervalo dos valores adequados.
+
         <br>
-        <p>Observação: a página foi desenvolvida para ficar bem dimensionada para uma tela (de notebook) com 15.6",
+        <br>
+        <br>
+        <p>Observações: 
+            <li>
+                Alguns valores padrão foram definidos, com base nas opiniões de alguns nutricionistas ou organizações
+            de saúde. Esses valores podem ser alterados pelo usuário, caso ele
+            tenha outra recomendação de alimentação (dado que isso pode variar de acordo com o objetivo do usuário).
+            </li>
+            <li>
+                A página foi desenvolvida para ficar bem dimensionada para uma tela (de notebook) com 15.6",
             podendo ficar com algo mal alinhado em outras dimensões (infelizmente a página não é bem responsiva). Se
             algo estiver fora do lugar, recomendamos utilizar a função de zoom out do navegador (atalho "CTRL -" para
             grande parte dos navegadores).
+
+            </li>
         </p>
 
     </div>
