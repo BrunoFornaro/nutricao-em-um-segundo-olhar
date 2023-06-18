@@ -1,33 +1,33 @@
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+// // Import the functions you need from the SDKs you need
+// import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+// import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+// import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+// import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// // TODO: Add SDKs for Firebase products that you want to use
+// // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyAhS7zhyXHLNGLpQ9saPZZg8Aol8jWaGPA",
-    authDomain: "nutricao-em-um-olhar.firebaseapp.com",
-    projectId: "nutricao-em-um-olhar",
-    storageBucket: "nutricao-em-um-olhar.appspot.com",
-    messagingSenderId: "101019466395",
-    appId: "1:101019466395:web:d22a7fda84e635e544243e",
-    measurementId: "G-MNX0D151MB"
-};
+// // Your web app's Firebase configuration
+// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// const firebaseConfig = {
+//     apiKey: "AIzaSyAhS7zhyXHLNGLpQ9saPZZg8Aol8jWaGPA",
+//     authDomain: "nutricao-em-um-olhar.firebaseapp.com",
+//     projectId: "nutricao-em-um-olhar",
+//     storageBucket: "nutricao-em-um-olhar.appspot.com",
+//     messagingSenderId: "101019466395",
+//     appId: "1:101019466395:web:d22a7fda84e635e544243e",
+//     measurementId: "G-MNX0D151MB"
+// };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth();
-const db = getFirestore(app);
-// Signed in
-const user_uid = localStorage.getItem('user');
-console.log(user_uid);
+// // Initialize Firebase
+// const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app);
+// const auth = getAuth();
+// const db = getFirestore(app);
+// // Signed in
+// const user_uid = localStorage.getItem('user');
+// console.log(user_uid);
 
 // const confirmar_elemente = document.getElementById('confirmar');
 // confirmar_elemente.addEventListener('click', confirmar);

@@ -3,7 +3,7 @@ body {
     font-size: 18px;
     margin-left: 5%;
     margin-right: 5%;
-    background-color: #CADDE5;
+    background-color: #9DDFBB;
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
 }
@@ -47,7 +47,7 @@ label {
     padding-left: 32px;
     padding-right: 32px;
     border-radius: 20px;
-    background-color: #cadde574;
+    background-color: #9DDFBB74;
     /* Alfa na cor de fundo*/
     /* opacity: 0.9; */
     /* Borda com sombra no container */
@@ -67,9 +67,18 @@ label {
 }
 
 #charts,
-#div_pie_chart,
-#violinplot {
+#violinplot,
+#linechart_legend,
+#linechart_weight,
+#linechart_protein,
+#linechart_carb,
+#linechart_lipid {
     width: 100%;
+    vertical-align: bottom;
+}
+
+#div_pie_chart {
+    width: 75%;
     vertical-align: bottom;
 }
 
@@ -152,7 +161,7 @@ label {
     padding: 5px;
     text-align: center;
     line-height: 50px;
-    background-color: #CADDE5;
+    background-color: #9DDFBB;
     border-color: black;
 }
 
@@ -164,7 +173,7 @@ label {
     border: 1px solid #ccc;
     padding: 5px;
     text-align: center;
-    background-color: #CADDE5;
+    background-color: #9DDFBB;
     border-color: black;
 }
 
@@ -175,7 +184,7 @@ label {
     border-radius: 5px;
     border: 1px solid #ccc;
     text-align: center;
-    background-color: #CADDE5;
+    background-color: #9DDFBB;
     border-color: black;
 }
 
@@ -234,7 +243,7 @@ input[type="range"] {
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background-color: #007bff;
+    background-color: #0F8C5E;
     width: 25px;
     height: 25px;
     border-radius: 50%;
@@ -266,6 +275,8 @@ input[type="range"]::-webkit-slider-thumb:active {
     width: 40px;
     text-align: center;
     align-items: center;
+    background-color: #0F8C5E;
+    border-color: #0F8C5E;
 }
 
 .fix_thin_width {
@@ -290,26 +301,130 @@ input[type="range"]::-webkit-slider-thumb:active {
     align-items: center;
 }
 
+.btn-primary, 
 .header_button {
-    background-color: #87D936;
+    background-color: #0F8C5E;
     color: white;
-    border: 1px solid #87D936;
+    border: 1px solid #0F8C5E;
     box-shadow: 0 0 0px #0F8C5E !important;
 }
 
+.btn-primary:hover,
 .header_button:hover {
-    background-color: #79BF34;
-    border: 1px solid #79BF34;
+    background-color: #0c704c;
+    border: 1px solid #0c704c;
 }
 
+.btn-primary.active,
 .header_button.active {
     background-color: #0F8C5E;
     border-color: #0F8C5E;
 }
 
+.btn-primary.active,
+.btn-primary:active,
 .btn.header_button.active,
 .btn.header_button:active {
     background-color: #0F8C5E !important;
     border-color: #0F8C5E !important;
     box-shadow: 0 0 10px #0F8C5E !important;
+}
+
+.alert {
+    position: absolute;
+    /* top: -40px;
+    left: 50%; */
+    /* transform: translate(0px, -60px); */
+    /* padding: 15px; */
+    /* margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px; */
+    z-index: 999;
+    transition: top 0.3s ease-in-out;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.info-field {
+    position: relative;
+    display: inline-block;
+}
+
+.info-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 24px;
+    text-align: center;
+    background-color: lightgray;
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.info-content {
+    position: absolute;
+    top: 20px;
+    left: -405px;
+    width: 400px;
+    padding: 10px;
+    background-color: #FDFCFC;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: none;
+    box-shadow: 0 0 10px rgba(160, 140, 140, 0.5);
+}
+
+.info-field:hover .info-content {
+    display: block;
+    z-index: 999;
+}
+
+.nav-pills .nav-link,
+.nav-tabs .nav-link {
+    color: #0F8C5E;
+}
+
+.nav-pills .nav-link.active {
+    color: #fff;
+    background-color: #0F8C5E;
+}
+
+.btn-success {
+    background-color: #87D936;
+    border-color: #87D936;
+    color: black;
+}
+
+
+.buttons_plates {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.alert {
+    width: 400px;
+}
+
+#img_capa {
+    width: 160%;
+    height: 100%;
+    z-index: 999;
+    position: relative;
+}
+
+.text_capa {
+    padding-left: 100px;
+    text-align: center;
+}
+
+#login,
+#register {
+    width: 100%;
 }

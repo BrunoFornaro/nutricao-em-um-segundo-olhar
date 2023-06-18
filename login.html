@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrição em um olhar</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Folha de estilos -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+
+
+    <!-- Importar scripts do Firebase -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhS7zhyXHLNGLpQ9saPZZg8Aol8jWaGPA",
+            authDomain: "nutricao-em-um-olhar.firebaseapp.com",
+            projectId: "nutricao-em-um-olhar",
+            storageBucket: "nutricao-em-um-olhar.appspot.com",
+            messagingSenderId: "101019466395",
+            appId: "1:101019466395:web:d22a7fda84e635e544243e",
+            measurementId: "G-MNX0D151MB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        const db = getFirestore(app);
+
+        const register_elemente = document.getElementById('register');
+        register_elemente.addEventListener('click', register);
+
+        const login_element = document.getElementById('login');
+        login_element.addEventListener('click', login);
+
+        var message_element = document.getElementById("mensagem_login_register");
+
+        function register() {
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    // Salva o usuário nos cookies
+                    document.cookie = "user=" + user.uid;
+                    // Salva o usuário no localStorage
+                    localStorage.setItem("user", user.uid);
+
+                    // Cria um documento para o usuário no Firestore
+                    setDoc(doc(db, "user_info", user.uid), {
+                        // Peso
+                        weight: -1,
+                        // Último peso
+                        last_weight: -1,
+                        // Calorias diárias
+                        daily_calories: 0,
+                        // Percentual de carboidratos
+                        carbs_percent: 0,
+                        // Percentual de lipídios
+                        lipids_percent: 0,
+                        // Percentual de proteínas
+                        protein_percent: 0,
+                        // Tolerância
+                        tolerance: 0,
+                        // Número de refeições diárias
+                        num_daily_plates: 0,
+                        // Dados iniciais
+                        initial: 1,
+                    })
+                        .then(() => {
+                            // Operação de gravação concluída com sucesso
+                            messageForUser(message_element, "Usuário criado com sucesso!", "success", 5);
+
+
+                            // Troca para a página app.html
+                            window.location.href = "app.html";
+                        })
+                        .catch((error) => {
+                            // Ocorreu um erro ao gravar no Firestore
+                            console.error("Erro ao criar o documento: ", error);
+
+                            // Exibe erro para o usuário
+                            messageForUser(message_element, "Erro ao criar usuário. " + error, "danger", 5)
+                        });
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log(email)
+                    console.log(password)
+                    console.log(errorCode)
+                    console.log(errorMessage)
+                    // ..
+                });
+        }
+
+        function login() {
+
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+
+            const auth = getAuth();
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    // Salva o usuário no Local Storage
+                    localStorage.setItem("user", user.uid);
+
+                    // Exibe mensagem de sucesso para o usuário
+                    messageForUser(message_element, "Login realizado com sucesso", "success", 3);
+
+                    // Troca para a página app.html
+                    window.location.href = "app.html";
+
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // Imprimir erro para o usuário
+                    // ...
+
+                    // Imprimir mensagem de erro para o usuário
+                    messageForUser(message_element, "Usuário ou senha incorretos", "danger", 5);
+                });
+
+        }
+
+        function messageForUser(element, message, type = "success", duration = 3) {
+            // Escreve a mensagem
+            element.innerHTML = message;
+            // Define a cor da mensagem
+            var types = ["success", "danger", "warning", "info"];
+            element.classList.add("alert", "alert-" + type);
+            for (var i = 0; i < types.length; i++) {
+                if (type != types[i]) {
+                    element.classList.remove("alert-" + types[i]);
+                }
+            }
+
+            // Remove a mensagem após o tempo definido
+            setTimeout(function () {
+                element.innerHTML = "";
+                element.classList.remove("alert", "alert-" + type);
+            }, duration * 1000);
+        }
+    </script>
+</head>
+
+
+<!-- Header da página -->
+<header>
+
+    <!-- Título da página -->
+    <div class="row justify-content-center principal_container">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-1">
+            <!-- Logo da página -->
+            <img src="img/logo_sem_fundo.png" alt="Logo" class="logo" id="logo">
+        </div>
+        <div class="col-md-6 justify-content-center align-items-center" style="display:flex;">
+            <div class="row justify-content-center align-items-center">
+                <!-- Título -->
+                <h1 style="margin-bottom: 0px;">NUTRIÇÃO EM UM OLHAR</h1>
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <!-- <button type="button" class="btn btn-primary header_button" onclick="window.location.href='app.html'">
+                    App
+                </button> -->
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <!-- <button type="button" class="btn btn-primary header_button"
+                    onclick="window.location.href='tutorial.html'">
+                    Tutorial
+                </button> -->
+            </div>
+        </div>
+        <div class="col-md-1 center_col">
+            <div class="row justify-content-center align-items-center">
+                <!-- <button type="button" class="btn btn-primary header_button" onclick="window.location.href='about.html'">
+                    Sobre
+                </button> -->
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<body>
+    <!-- Formulário de login/registro -->
+    <form>
+        <div class="row justify-content-center">
+            <!-- Campo para mensagem do usuário  -->
+            <div id="mensagem_login_register"></div>
+
+            <div class="col-md-4 principal_container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="email">Endereço de email</label>
+                            <input type="email" class="form-control" id="email" aria-describedby="emailHelp"
+                                placeholder="Seu email">
+                            <small id="emailHelp" class="form-text text-muted">Nunca vamos compartilhar seu email, com
+                                ninguém.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-auto">
+                                    <label for="password">Senha</label>
+                                </div>
+                                <div class="col-md-auto">
+                                    <div class="info-field">
+                                        <span class="info-icon">
+                                            <i class="bi bi-question-circle"></i>
+                                        </span>
+                                        <div class="info-content" style="top:-60px; left:-82px;">
+                                            <p>
+                                                A senha deve ter pelo menos 6 caracteres.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <input type="password" class="form-control" id="password" placeholder="Senha">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row justify-content-center">
+                            <div class="col-md-4 text-center">
+                                <button class="btn btn-primary" type="button" id="login">Login</button>
+
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <button class="btn btn-primary" type="button" id="register">Register</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Se você precisar adicionar algum script adicional, coloque-o aqui -->
+    <script>
+        // Coloque scripts adicionais aqui, se necessário
+    </script>
+</body>
+
+</html>

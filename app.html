@@ -37,7 +37,7 @@
 
     <!-- Importar scripts do Firebase -->
     <script type="module">
-        const DEBUG = false;
+        const DEBUG = true;
 
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -109,19 +109,103 @@
             console.log(user_uid);
         }
 
-        // Faz um click automático na tela
-        // Obtém uma referência para o botão
-        var button = document.getElementById('menos_alimentos');
+        // Exibe as mensagens de carregamento iniciais
+        var elements = ["mensagem_hoje", "mensagem_refeicoes_hoje"]//, "mensagem_mes"]
+        for (var i in elements) {
+            messageForUser(document.getElementById(elements[i]), "Carregando dados...", "info", 100);
+        }
 
-        // Cria um evento de clique
-        var clickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        view: window
-        });
+        const fake_data = false
 
-        // Simula o clique no botão
-        button.dispatchEvent(clickEvent);
+        if (fake_data) {
+            populateWithFakeData();
+
+            function populateWithFakeData() {
+                // Gera dados falsos nos ultimos 2 meses
+                // Função para gerar um número aleatório entre min e max
+                function gerarNumeroDecimalAleatorio(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                // Hoje
+                var today = new Date();
+                var today_str = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+
+                // Data de 2 meses atrás
+                var curr_day = today.getDate()
+                var curr_month = today.getMonth() - 1
+                var curr_year = today.getFullYear()
+                if (curr_month < 1) {
+                    curr_month += 12
+                    curr_year -= 1
+                }
+
+                // Itera pelos dias do mês até chegar no dia de hoje
+                while (
+                    curr_day != today.getDate() ||
+                    curr_month != today.getMonth() + 1 ||
+                    curr_year != today.getFullYear()
+                ) {
+                    // Cria a string do dia
+                    var month_str = curr_month
+                    if (month_str < 10) {
+                        month_str = "0" + month_str
+                    }
+                    var day_str = curr_day
+                    if (day_str < 10) {
+                        day_str = "0" + day_str
+                    }
+                    var date_str = curr_year + "-" + month_str + "-" + day_str
+
+                    // Gera os dados aleatórios
+                    var foods = ["Arroz tipo 2 cozido", "Feijão preto cozido", "Frango filé à milanesa", "Toucinho frito"]
+                    var mins = [140, 35, 60, 8]
+                    var maxs = [180, 65, 80, 12]
+
+                    // Adiciona os dados do prato no banco de dados
+                    for (var i in foods) {
+                        var food = foods[i]
+                        var min = mins[i]
+                        var max = maxs[i]
+                        var quantity = gerarNumeroDecimalAleatorio(min, max) * 4;
+                        var docRef = doc(
+                            db,
+                            user_uid,
+                            date_str,
+                            "plates",
+                            "0",
+                            "food",
+                            i
+                        );
+                        setDoc(docRef, {
+                            name: food,
+                            quantity: quantity
+                        })
+                            .then(() => {
+                                if (DEBUG) {
+                                    console.log("Document successfully written!");
+                                }
+                            })
+                            .catch((error) => {
+                                console.error("Error writing document: ", error);
+                            });
+                    }
+
+                    // Incrementa o dia
+                    const last_day_of_month = new Date(curr_year, curr_month, 0).getDate()
+                    curr_day += 1
+                    if (curr_day > last_day_of_month) {
+                        curr_day = 1
+                        curr_month += 1
+                        if (curr_month > 12) {
+                            curr_month = 1
+                            curr_year += 1
+                        }
+                    }
+                }
+            }
+        }
+
 
 
         const confirmar_elemente = document.getElementById('confirmar');
@@ -162,6 +246,10 @@
 
 
         function confirmar() {
+            const mensagem_objetivos = document.getElementById('mensagem_objetivos');
+            messageForUser(mensagem_objetivos, "Atualizando...", "info", 10);
+
+            // Recupera os dados do usuário
             var data = {};
 
             fieldIds.forEach(function (fieldId) {
@@ -191,10 +279,17 @@
             })
                 .then(() => {
                     console.log("Documento atualizado com sucesso!");
+
+                    // Exibe a mensagem de sucesso
+                    messageForUser(mensagem_objetivos, "Atualizado com sucesso!", "success", 3);
                 })
                 .catch((error) => {
                     // Ocorreu um erro ao gravar no Firestore
                     console.error("Erro ao criar o documento: ", error);
+
+
+                    // Exibe a mensagem de falha
+                    messageForUser(mensagem_objetivos, "Houve algum problema ao atualizar :(", "danger", 5);
                 });
 
             // Cria (ou atualiza) o documento para o usuário no Firestore (histórico)
@@ -224,6 +319,10 @@
 
         // Adiciona um evento de clique ao botão de confirmar prato
         confirmar_prato.addEventListener('click', async function () {
+            // Exibe a mensagem de prato confirmado
+            const mensagemElement = document.getElementById("mensagem_confirmar_prato");
+            messageForUser(mensagemElement, "Confirmando prato...", "info", 20);
+
             // Obtém a quantidade de alimentos no prato
             var qtd_alimentos = document.getElementsByClassName('filtro_textual').length;
 
@@ -233,7 +332,6 @@
                 var stop = false;
 
                 while (!stop) {
-                    //   console.log("Entrou no loop");
 
                     try {
                         var docRef = doc(
@@ -251,13 +349,11 @@
 
                         if (docSnap.exists()) {
                             num_pratos++;
-                            //   console.log(num_pratos);
                         } else {
-                            //   console.log("Parou o loop com " + num_pratos + " pratos");
                             stop = true;
                         }
                     } catch (error) {
-                        // console.error("Erro ao recuperar os dados:", error);
+                        console.error("Erro ao recuperar os dados:", error);
                         stop = true;
                     }
                 }
@@ -268,11 +364,11 @@
             var num_pratos = 0;
             // Chama a função assíncrona para obter o número de pratos
             await getNumberOfPlates().then(function (n) {
-                // console.log("Número de pratos: " + n);
                 num_pratos = n;
             });
-            //   console.log("Número de pratos: " + num_pratos);
 
+            // Variável para verificar se um alimento foi selecionado
+            var has_food = false;
             // Itera pelos alimentos
             for (var i = 1; i <= qtd_alimentos; i++) {
                 // Obtém o nome do alimento
@@ -282,8 +378,8 @@
 
                 // Verifica se o nome do alimento não é vazio
                 if (nome_alimento) {
+                    has_food = true;
                     // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
-                    // console.log("Vai ser inserido o alimento " + nome_alimento + " com quantidade " + quantidade_alimento + " no prato " + num_pratos)
                     setDoc(doc(db, user_uid, curr_date_formated(), "plates", "" + num_pratos, "food", "" + i), {
                         name: nome_alimento,
                         quantity: quantidade_alimento,
@@ -294,14 +390,24 @@
                             console.log("Documento atualizado com sucesso!");
                             getDataToTodayPage();
                             fillPlatesList();
+                            // Exibe a mensagem de prato confirmado em um alerta verde flutuante
+                            messageForUser(mensagemElement, "Prato confirmado!", "success", 3);
                         }
                         )
                         .catch((error) => {
                             // Ocorreu um erro ao gravar no Firestore
                             console.error("Erro ao criar o documento: ", error);
+
+                            // Exibe a mensagem de erro em um alerta vermelho flutuante
+                            messageForUser(mensagemElement, "Houve algum problema ao confirmar o prato :(", "danger", 5);
                         }
                         );
                 }
+            }
+
+            // Exibe uma mensagem de que nenhum alimento foi adicionado
+            if (!has_food) {
+                messageForUser(mensagemElement, "Nenhum alimento foi adicionado!", "danger", 5);
             }
         });
 
@@ -518,6 +624,10 @@
 
         // Função para preencher a lista de pratos do dia
         function fillPlatesList(plates) {
+            // Exibe a mensagem de carregamento
+            const message_element = document.getElementById('mensagem_refeicoes_hoje');
+            messageForUser(message_element, 'Carregando...', "info", 100);
+
             // Chama a função assíncrona para obter todos os pratos
             getAllPlates().then(function (plates) {
 
@@ -610,6 +720,8 @@
 
                 document.getElementById("lista_pratos_do_dia").innerHTML = html_string;
 
+                // Oculta a mensagem de carregamento
+                messageForUser(message_element, '', "info", 0);
             });
         }
 
@@ -766,7 +878,7 @@
             $("#monthpicker").datepicker({
                 format: "mm/yyyy",
                 minViewMode: "months",
-                autoclose: false,
+                autoclose: true,
                 altField: "#dateHidden",
                 onClose: function (dateText, inst) {
                     var selectedDate = $(this).datepicker("getDate");
@@ -780,7 +892,12 @@
 
                 monthpickerFunction(year, month);
                 // Outras ações que você deseja realizar quando o valor do monthpicker for alterado
-            }).datepicker("show")
+            });
+
+            // Abrir manualmente o Monthpicker quando o campo de entrada for clicado
+            $("#monthpicker").on("click", function () {
+                $(this).datepicker("show");
+            });
         });
 
         async function getUserInfo(
@@ -1070,8 +1187,7 @@
                 }
                 while (
                     next_year < today.getFullYear() ||
-                    (next_year == today.getFullYear() && next_month < today.getMonth() + 1) ||
-                    (next_year == today.getFullYear() && next_month == today.getMonth() + 1 && last_day < today.getDate())
+                    (next_year == today.getFullYear() && next_month <= today.getMonth() + 1)
                 ) {
                     if (next_month < 10) {
                         next_month = "0" + next_month;
@@ -1166,10 +1282,36 @@
             return user_info;
         }
 
+        function messageForUser(element, message, type = "success", duration = 3) {
+            // Escreve a mensagem
+            element.innerHTML = message;
+            // Define a cor da mensagem
+            var types = ["success", "danger", "warning", "info"];
+            element.classList.add("alert", "alert-" + type);
+            for (var i = 0; i < types.length; i++) {
+                if (type != types[i]) {
+                    element.classList.remove("alert-" + types[i]);
+                }
+            }
+
+            // Remove a mensagem após o tempo definido
+            setTimeout(function () {
+                element.innerHTML = "";
+                element.classList.remove("alert", "alert-" + type);
+            }, duration * 1000);
+        }
+
         // Função do monthpicker
         async function monthpickerFunction(year, month) {
+            // Exibe a mensagem de carregamento
+            const mensagem_element = document.getElementById("mensagem_data");
+            messageForUser(mensagem_element, "Carregando... (isso pode demorar um pouco)", "info", 100);
+
+            // Obtém os pratos do mês
             const plates = await getAllPlatesInMonth(year, month);
+            // Obtém as informações nutricionais dos pratos do mês
             const nutritional_info_of_month = await getNutritionalInfoOfPlatesInMonth(plates);
+            // Obtém o peso do mês
             const weight = await getWeightOfMonth(year, month);
 
             var data_to_linechart = {};
@@ -1221,6 +1363,9 @@
             var event = new Event("change");
             linechart_data.dispatchEvent(event);
 
+            // Esconde a mensagem de carregamento
+            messageForUser(mensagem_element, "", "success", 0);
+
             return data_to_linechart;
         }
 
@@ -1256,6 +1401,10 @@
 
 
         async function getDataToTodayPage() {
+            //Exibe a mensagem de carregamento
+            const mensagem_element = document.getElementById("mensagem_hoje");
+            messageForUser(mensagem_element, "Carregando dados...", "info", 60);
+
             var date = curr_date_formated();
             var plates_of_day = await getAllPlates(date);
             var plates_nutritional_info = await getNutritionalInfoOfPlates(plates_of_day);
@@ -1310,6 +1459,9 @@
             minerals_data_element.dispatchEvent(event);
             vitamins_data_element.dispatchEvent(event);
             fat_data_element.dispatchEvent(event);
+
+            // Esconde a mensagem de carregamento
+            messageForUser(mensagem_element, "", "success", 0);
         }
         getDataToTodayPage();
 
@@ -1406,21 +1558,21 @@
             <div class="not_visible">
                 <div class="principal_container">
                     <h3>Informações do usuário</h3>
-                    <div id="observablehq-inserts_cell-db1bfa4f"></div>
+                    <div id="observablehq-inserts_cell-13688fe5"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-db1bfa4f" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-13688fe5" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-db1bfa4f"></div>
+                <div id="observablehq-list_food_cell-13688fe5"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-db1bfa4f"></div>
+                <div id="observablehq-sliders_quantity_cell-13688fe5"></div>
             </div>
 
 
@@ -1430,18 +1582,74 @@
                     <div class="principal_container fix_thin_width">
                         <div class="row">
                             <div class="col-md-12">
-                                <h3>Monte sua refeição:</h3>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="row justify-content-center">
-                                    <div class="col-md-8">
-                                        <button class="btn btn-success" type="button" id="confirmar_prato">Salvar
-                                            Prato</button>
+                                <div class="row align-items-center">
+                                    <div class="col-md-11">
+                                        <h3>
+                                            Monte sua refeição:
+
+                                        </h3>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-1">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <ul>
+                                                    <li>
+                                                        <p>
+                                                            Selecione os alimentos que compõem sua refeição.
+                                                        </p>
+                                                    </li>
+                                                    <li>
+                                                        <p>Para cada alimento, selecione a quantidade que você
+                                                            consumiu (ou vai consumir).</p>
+                                                    </li>
+                                                    <li>
+                                                        <p>
+                                                            Utilize os botões + e - para adicionar ou remover alimentos.
+                                                        </p>
+                                                    </li>
+                                                    <li>
+                                                        <p>
+                                                            Salve sua refeição clicando no botão "Salvar Prato".
+                                                        </p>
+                                                    </li>
+                                                    <li>
+                                                        <p>
+                                                            Veja no "gráfico de prato":
+                                                        </p>
+                                                        <ul>
+                                                            <li>
+                                                                <p>
+                                                                    A proporção dos alimentos no seu prato;
+                                                                </p>
+                                                            </li>
+                                                            <li>
+                                                                <p>
+                                                                    Os macronutriente de cada alimento (passe o cursor
+                                                                    por cima).
+                                                                </p>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 buttons_plates">
+                                <div class="row justify-content-center">
+                                    <div class="col-md-auto">
                                         <button class="btn btn-primary" type="button" id="mais_alimentos">+</button>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-auto">
+                                        <div id="mensagem_confirmar_prato"></div>
+                                        <button class="btn btn-success" type="submit" id="confirmar_prato">Salvar
+                                            Prato</button>
+                                    </div>
+                                    <div class="col-md-auto">
                                         <button class="btn btn-primary" type="button" id="menos_alimentos">-</button>
                                     </div>
                                 </div>
@@ -1473,11 +1681,8 @@
 
 
                         <!-- Valor energético do prato -->
-                        <div id="observablehq-valor_energetico-db1bfa4f"></div>
+                        <div id="observablehq-valor_energetico-13688fe5"></div>
 
-                        <br>
-                        <br>
-                        <br>
 
                         <!-- Gráfico de pizza -->
                         <div class="fix_thin_width">
@@ -1496,16 +1701,70 @@
 
                     <!-- Tabs dos gráfico -->
                     <div class="principal_container fix_thin_width">
-                        <h3>Filtro e Macronutrientes do Prato</h3>
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h3>Macronutrientes do Prato</h3>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="info-field">
+                                    <span class="info-icon">
+                                        <i class="bi bi-question-circle"></i>
+                                    </span>
+                                    <div class="info-content">
+                                        <ul>
+                                            <li>
+                                                <p>
+                                                    Utilize o gráfico em "Filtrar alimentos" para:
+                                                </p>
+                                                <ul>
+                                                    <li>
+                                                        <p>
+                                                            Ver a quantidade de alimentos por macronutriente;
+                                                        </p>
+                                                    </li>
+                                                    <li>
+                                                        <p>
+                                                            Filtrar os alimentos que você pode selecionar,
+                                                        </p>
+                                                    </li>
+                                                    <li>
+                                                        <p>
+                                                            Selecionar os alimentos que você deseja.
+                                                        </p>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Utilize o gráfico em "Distribuição dos macronutrientes" para:
+                                                </p>
+                                                <ul>
+                                                    <li>
+                                                        <p>
+                                                            Ver a quantidade e adequação dos macronutrientes no prato.
+                                                        </p>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="">
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
                                     <a class="tabs_charts nav-link active" href="#content_violin" id="tab_violin"
-                                        data-bs-toggle="tab">Filtrar alimentos</a>
+                                        data-bs-toggle="tab">
+                                        <h5>Filtrar alimentos</h5>
+                                    </a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="tabs_charts nav-link" href="#content_bar" id="tab_bar"
-                                        data-bs-toggle="tab">Distribuição dos Macronutrientes</a>
+                                        data-bs-toggle="tab">
+                                        <h5>Distribuição dos Macronutrientes</h5>
+                                    </a>
                                 </li>
                             </ul>
                         </div>
@@ -1513,12 +1772,12 @@
                         <div id="charts" class="">
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
-                                <div id="observablehq-violinplot_cell-db1bfa4f"></div>
+                                <div id="observablehq-violinplot_cell-13688fe5"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
-                                <div id="observablehq-bar_chart_cell-db1bfa4f"></div>
+                                <div id="observablehq-bar_chart_cell-13688fe5"></div>
                             </div>
                         </div>
                     </div>
@@ -1537,41 +1796,221 @@
             <form>
                 <div class="row justify-content-center">
                     <div class="col-md-4 principal_container">
-                        <div class="form-group">
-                            <label for="weight">Peso (Kg)</label>
-                            <input type="number" class="form-control" id="weight" placeholder="70.00">
-                        </div>
-                        <div class="form-group not_visible">
-                            <label for="last_weight">Último Peso (Kg)</label>
-                            <input type="number" class="form-control" id="last_weight" placeholder="-1">
-                        </div>
-                        <div class="form-group">
-                            <label for="daily_calories">Calorias Diárias (Kcal)</label>
-                            <input type="number" class="form-control" id="daily_calories" placeholder="2000">
-                        </div>
-                        <div class="form-group">
-                            <label for="carbs_percent">Percentual de Carboidratos (%)</label>
-                            <input type="number" class="form-control" id="carbs_percent" placeholder="50">
-                        </div>
-                        <div class="form-group">
-                            <label for="lipids_percent">Percentual de Lipídios (%)</label>
-                            <input type="number" class="form-control" id="lipids_percent" placeholder="25">
-                        </div>
-                        <div class="form-group">
-                            <label for="protein_percent">Percentual de Proteínas (%)</label>
-                            <input type="number" class="form-control" id="protein_percent" placeholder="25">
-                        </div>
-                        <div class="form-group">
-                            <label for="tolerance">Tolerância (%)</label>
-                            <input type="number" class="form-control" id="tolerance" placeholder="10">
-                        </div>
-                        <div class="form-group">
-                            <label for="num_daily_plates">Número de refeições por dia</label>
-                            <input type="number" class="form-control" id="num_daily_plates" placeholder="4">
-                        </div>
                         <div class="row">
-                            <div class="col text-center">
-                                <button class="btn btn-primary" type="button" id="confirmar">Confirmar</button>
+                            <div class="col-md-11">
+                                <h3>Seus dados e objetivos</h3>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="info-field">
+                                    <span class="info-icon">
+                                        <i class="bi bi-question-circle"></i>
+                                    </span>
+                                    <div class="info-content">
+                                        <ul>
+                                            <li>
+                                                <p>
+                                                    Preencha suas informações para serem utilizadas para montar suas
+                                                    refeições
+                                                    adequadamente.
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Não coloque as unidades de medidas nos campos, apenas os valores.
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Separe os decimais com ponto.
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Após atualizar os campos, clique em "Atualizar dados".
+                                                </p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="weight">Peso (Kg)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    Seu peso em Kg.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="weight" placeholder="70.00">
+                            </div>
+
+                            <div class="form-group not_visible col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="last_weight">Último Peso (Kg)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    Seu ultimo peso registrado (em Kg).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="last_weight" placeholder="-1">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="daily_calories">Calorias Diárias (Kcal)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    Sua meta de consumo de calorias diárias (em Kcal).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="daily_calories" placeholder="2000">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="carbs_percent">Percentual de Carboidratos (%)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    O percentual das calorias diárias que devem vir de carboidratos.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="carbs_percent" placeholder="50">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="lipids_percent">Percentual de Lipídios (%)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    O percentual das calorias diárias que devem vir de lipídios.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="lipids_percent" placeholder="25">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="protein_percent">Percentual de Proteínas (%)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    O percentual das calorias diárias que devem vir de proteínas.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="protein_percent" placeholder="25">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="tolerance">Tolerância (%)</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    A margem de tolerância (percentual) para o consumo de calorias
+                                                    diárias (e, consequentemente, dos macronutrientes).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="tolerance" placeholder="10">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="row">
+                                    <div class="col-md-auto">
+                                        <label for="num_daily_plates">Número de refeições por dia</label>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    Número de refeição diárias.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" class="form-control" id="num_daily_plates" placeholder="4">
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="row justify-content-center">
+                                    <div id="mensagem_objetivos"></div>
+                                    <div class="col text-center">
+                                        <button class="btn btn-primary" type="submit" id="confirmar">Atualizar
+                                            dados</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1593,40 +2032,67 @@
 
                 </div>
             </div> -->
-            <!-- Gráfico de peso -->
-            <div class="col-md-12">
                 <!-- Gráfico de peso -->
-                <div class="row principal_container">
-                    <div class="col-md-12">
-                        <h3>
-                            Evolução do mês
-                        </h3>
-                    </div>
+                <div class="col-md-12">
+                    <!-- Gráfico de peso -->
+                    <div class="row principal_container">
+                        <div id="mensagem_mes"></div>
+                        <div class="col-md-11">
+                            <h3>
+                                Evolução do mês
+                            </h3>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="info-field">
+                                <span class="info-icon">
+                                    <i class="bi bi-question-circle"></i>
+                                </span>
+                                <div class="info-content" style="width: 600px; left:-605px;">
+                                    <p>
+                                        A relação entre a ingestão de macronutrientes e o peso corporal é complexa e
+                                        pode
+                                        ser influenciada por diversos fatores individuais, como metabolismo, nível de
+                                        atividade física e características genéticas. Portanto, a comparação entre os
+                                        gráficos de peso e de ingestão de macronutrientes deve ser feita de forma
+                                        razoável,
+                                        levando em consideração outros fatores e buscando orientação de profissionais de
+                                        saúde, como nutricionistas, para interpretação adequada dos dados e definição de
+                                        estratégias alimentares personalizadas.
+                                    </p>
+                                    <p>
+                                        Selecione o mês que deseja visualizar e veja como foi seu desempenho ao longo do
+                                        mês. O gráfico mostra seu peso (registrado) ao longo do mês, assim como o
+                                        consumo de cada macronutriente e a adequação do consumo.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Seletor da data -->
-                    <div class="col-md-auto align-items-center">
-                        <h4 class="">
-                            Selecione a data:
-                        </h4>
-                    </div>
-                    <div class="col-md-3 ">
-                        <div class="row align-items-center">
+                        <!-- Seletor da data -->
+                        <div class="col-md-auto align-items-center">
+                            <h4 class="">
+                                Selecione a data:
+                            </h4>
+                        </div>
+                        <div class="col-md-3 ">
+                            <div id="mensagem_data"></div>
+                            <div class="row align-items-center">
 
-                            <!-- Adicione os scripts do Bootstrap e do jQuery -->
-                            <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                                <!-- Adicione os scripts do Bootstrap e do jQuery -->
+                                <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
                             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 
 
 
-                            <!-- Adicione o CSS do Monthpicker -->
-                            <link rel="stylesheet"
-                                href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+                                <!-- Adicione o CSS do Monthpicker -->
+                                <link rel="stylesheet"
+                                    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
 
-                            <!-- Adicione o script do Monthpicker -->
-                            <script
-                                src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+                                <!-- Adicione o script do Monthpicker -->
+                                <script
+                                    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
-                            <!-- <script>
+                                <!-- <script>
                                 $(document).ready(function () {
                                     // Inicialize o Monthpicker
                                     $("#monthpicker").datepicker({
@@ -1649,58 +2115,71 @@
                                     }).datepicker("show")
                                 });
                             </script> -->
-                            <div class="input-group">
-                                <input type="text" id="monthpicker" class="form-control" placeholder="06/2023">
-                                <div class="input-group-append">
-                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                <div class="input-group">
+                                    <input type="text" id="monthpicker" class="form-control" placeholder="06/2023">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <style>
+                                <!-- <style>
                                 .datepicker.datepicker-dropdown.dropdown-menu.datepicker-orient-left.datepicker-orient-top {
                                     left: 470px !important;
                                     top: 625px !important;
                                 }
-                            </style>
+                            </style> -->
 
+                            </div>
                         </div>
-                    </div>
 
 
 
-                    <div class="col-md-12">
-                        <div class="row justify-content-center">
-                            <!-- CSS do gráfico -->
-                            <div id="observablehq-css_grafico_de_peso-db1bfa4f"></div>
-                            <!-- Gráfico -->
-                            <div id="observablehq-chart_peso-db1bfa4f" class="not_visible"></div>
-                            <div id="linechart_legend"></div>
-                            <div id="linechart_weight"></div>
-                            <div id="linechart_carb"></div>
-                            <div id="linechart_protein"></div>
-                            <div id="linechart_lipid"></div>
+                        <div class="col-md-12">
+                            <div class="row justify-content-center">
+                                <!-- CSS do gráfico -->
+                                <div id="observablehq-css_grafico_de_peso-13688fe5"></div>
+                                <!-- Gráfico -->
+                                <div id="observablehq-chart_peso-13688fe5" class="not_visible"></div>
+                                <div id="linechart_weight"></div>
+                                <div id="linechart_carb"></div>
+                                <div id="linechart_protein"></div>
+                                <div id="linechart_lipid"></div>
+                                <div id="linechart_legend"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Aba de Refeições do dia -->
-    <div class="tabs_pages tab-pane fade not_visible" id="content_pratos_do_dia" role="tabpanel"
-        aria-labelledby="tab_pratos_do_dia">
-        <div class="row">
-            <div class="col-md-6 fix_height">
-                <div class="principal_container fix_thin_width">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h3>Refeições de hoje</h3>
+        <!-- Aba de Refeições do dia -->
+        <div class="tabs_pages tab-pane fade not_visible" id="content_pratos_do_dia" role="tabpanel"
+            aria-labelledby="tab_pratos_do_dia">
+            <div class="row">
+                <div class="col-md-6 fix_height">
+                    <div class="principal_container fix_thin_width">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h3>Refeições de hoje</h3>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="info-field">
+                                    <span class="info-icon">
+                                        <i class="bi bi-question-circle"></i>
+                                    </span>
+                                    <div class="info-content">
+                                        <p>
+                                            Veja aqui as refeições que você registrou hoje.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="lista_pratos_do_dia" id="lista_pratos_do_dia">
-                        <!-- Lista de pratos do dia (preenchida por javascript) -->
+                        <div id="mensagem_refeicoes_hoje"></div>
+                        <div class="lista_pratos_do_dia" id="lista_pratos_do_dia">
+                            <!-- Lista de pratos do dia (preenchida por javascript) -->
 
-                        <!-- Teste preenchido a mão -->
-                        <!-- <div class="plates_container">
+                            <!-- Teste preenchido a mão -->
+                            <!-- <div class="plates_container">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <h3>
@@ -1746,151 +2225,258 @@
                                 </div>
                             </div> -->
 
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- Aba dos gráficos dos micronutrientes -->
-            <div class="col-md-6 fix_height">
-                <div class="principal_container fix_thin_width">
-                    <h3>Micronutrientes</h3>
-                    <!-- Nav-items para gorduras, minerais e vitaminas -->
-                    <ul class="nav nav-tabs today_tab" id="today_tab" role="tablist">
-                        <li class="nav-item today_tab" role="presentation" id="tab_gorduras">
-                            <a class="nav-link active today_tab" id="gorduras-tab" data-toggle="tab"
-                                href="#content_gorduras" role="tab" aria-controls="content_gorduras"
-                                aria-selected="true">Gorduras</a>
-                        </li>
-                        <li class="nav-item today_tab" role="presentation" id="tab_minerais">
-                            <a class="nav-link today_tab" id="minerais-tab" data-toggle="tab" href="#content_minerais"
-                                role="tab" aria-controls="content_minerais" aria-selected="false">Minerais</a>
-                        </li>
-                        <li class="nav-item today_tab" role="presentation" id="tab_vitaminas">
-                            <a class="nav-link today_tab" id="vitaminas-tab" data-toggle="tab" href="#content_vitaminas"
-                                role="tab" aria-controls="content_vitaminas" aria-selected="false">Vitaminas</a>
-                        </li>
-                    </ul>
-                    <!-- Conteúdo das tabs das gorduras, minerais e vitaminas -->
-                    <div>
-                        <div class="tab-content" id="myTabContent">
-                            <!-- Conteúdo da tab de gorduras -->
-                            <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
-                                aria-labelledby="gorduras-tab">
-                                <!-- <div id="observablehq-lipids_cell-db1bfa4f"></div> -->
-                                <div id="fat_graph_div"></div>
+                <!-- Aba dos gráficos dos micronutrientes -->
+                <div class="col-md-6 fix_height">
+                    <div class="principal_container fix_thin_width">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h3>Micronutrientes</h3>
                             </div>
-                            <!-- Conteúdo da tab de minerais -->
-                            <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
-                                aria-labelledby="minerais-tab">
-                                <!-- <div id="observablehq-minerals_cell-db1bfa4f"></div> -->
-                                <div id="minerals_graph_div"></div>
+                            <div class="col-md-1">
+                                <div class="info-field">
+                                    <span class="info-icon">
+                                        <i class="bi bi-question-circle"></i>
+                                    </span>
+                                    <div class="info-content">
+                                        <h5>
+                                            Aqui você pode ver os gráficos:
+                                        </h5>
+                                        <ul>
+                                            <li>
+                                                <p>
+                                                    Gorduras: mostra a divisão entre gorduras saturadas,
+                                                    monoinsaturadas e poliinsaturadas. Nele você pode ver se
+                                                    está consumindo em excesso algum tipo de gordura.
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Minerais: mostra a quantidade dos minerais que você
+                                                    consumiu. Nele você pode ver se está consumindo o mínimo
+                                                    adequado de cada mineral.
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>
+                                                    Vitaminas: mostra a quantidade das vitaminas que você
+                                                    consumiu. Nele você pode ver se está consumindo o mínimo
+                                                    adequado de cada vitamina.
+                                                </p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                            <!-- Conteúdo da tab de vitaminas -->
-                            <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
-                                aria-labelledby="minerais-tab">
-                                <!-- <div id="observablehq-vitamins_cell-db1bfa4f"></div> -->
-                                <div id="vitamins_graph_div"></div>
+                        </div>
+
+                        <!-- Nav-items para gorduras, minerais e vitaminas -->
+                        <ul class="nav nav-tabs today_tab" id="today_tab" role="tablist">
+                            <li class="nav-item today_tab" role="presentation" id="tab_gorduras">
+                                <a class="nav-link active today_tab" id="gorduras-tab" data-toggle="tab"
+                                    href="#content_gorduras" role="tab" aria-controls="content_gorduras"
+                                    aria-selected="true">
+                                    <h5>Gorduras
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    Recomendação da OMS: As gorduras saturadas devem ser consumidas com
+                                                    bastante moderação, sem passar de 10% das calorias diárias; gorduras
+                                                    poli-insaturadas devem ficar em torno de 6 a 10% das calorias
+                                                    diárias e
+                                                    as monoinsaturadas com o limite de 20%.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </h5>
+                                </a>
+
+
+                            </li>
+                            <li class="nav-item today_tab" role="presentation" id="tab_minerais">
+                                <a class="nav-link today_tab" id="minerais-tab" data-toggle="tab"
+                                    href="#content_minerais" role="tab" aria-controls="content_minerais"
+                                    aria-selected="false">
+                                    <h5>Minerais
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    O gráfico apresenta a Ingestão Diária Recomendada para atender às
+                                                    necessidades nutricionais da maior parte dos indivíduos e grupos de
+                                                    pessoas de uma população sadia. As pessoas que possuem restrição
+                                                    alimentar devem seguir a dieta passada pelo médico.
+                                                </p>
+                                                <p>
+                                                    Os valores foram retirados do site da Agência Nacional da Vigilância
+                                                    Sanitária (Anvisa).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </h5>
+                                </a>
+                            </li>
+                            <li class="nav-item today_tab" role="presentation" id="tab_vitaminas">
+                                <a class="nav-link today_tab" id="vitaminas-tab" data-toggle="tab"
+                                    href="#content_vitaminas" role="tab" aria-controls="content_vitaminas"
+                                    aria-selected="false">
+                                    <h5>Vitaminas
+                                        <div class="info-field">
+                                            <span class="info-icon">
+                                                <i class="bi bi-question-circle"></i>
+                                            </span>
+                                            <div class="info-content">
+                                                <p>
+                                                    O gráfico apresenta a Ingestão Diária Recomendada para atender às
+                                                    necessidades nutricionais da maior parte dos indivíduos e grupos de
+                                                    pessoas de uma população sadia. As pessoas que possuem restrição
+                                                    alimentar devem seguir a dieta passada pelo médico.
+                                                </p>
+                                                <p>
+                                                    Os valores foram retirados do site da Agência Nacional da Vigilância
+                                                    Sanitária (Anvisa).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </h5>
+                                </a>
+                            </li>
+                        </ul>
+                        <!-- Conteúdo das tabs das gorduras, minerais e vitaminas -->
+                        <div>
+
+                            <div id="mensagem_hoje"></div>
+                            <div class="tab-content" id="myTabContent">
+                                <!-- Conteúdo da tab de gorduras -->
+                                <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
+                                    aria-labelledby="gorduras-tab">
+                                    <!-- <div id="observablehq-lipids_cell-13688fe5"></div> -->
+                                    <div id="fat_graph_div"></div>
+                                </div>
+                                <!-- Conteúdo da tab de minerais -->
+                                <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
+                                    aria-labelledby="minerais-tab">
+                                    <!-- <div id="observablehq-minerals_cell-13688fe5"></div> -->
+                                    <div id="minerals_graph_div"></div>
+                                </div>
+                                <!-- Conteúdo da tab de vitaminas -->
+                                <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
+                                    aria-labelledby="minerais-tab">
+                                    <!-- <div id="observablehq-vitamins_cell-13688fe5"></div> -->
+                                    <div id="vitamins_graph_div"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
 
-    <!-- Parte só últil no backend -->
-    <div class="not_visible">
-        <div id="observablehq-init_bar_chart_cell-db1bfa4f"></div>
-        <div id="observablehq-outputs_alimentos-db1bfa4f"></div>
-        <div id="observablehq-filter_food_to_bar_chart-db1bfa4f"></div>
-        <div id="observablehq-alimentos_selecionados-db1bfa4f"></div>
-        <div id="observablehq-filtro_textual-db1bfa4f"></div>
-        <div id="observablehq-num_alimento-db1bfa4f"></div>
-        <div id="observablehq-botao_confirmar-db1bfa4f"></div>
-        <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-db1bfa4f"></div>
-        <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-db1bfa4f"></div>
-        <div id="observablehq-function_confirm_buttom-db1bfa4f"></div>
-        <div id="observablehq-update_dropdown-db1bfa4f"></div>
-        <div id="observablehq-update_dropdown_cell-db1bfa4f"></div>
-        <div id="observablehq-brush_cell-db1bfa4f"></div>
-        <div id="observablehq-violinplot_function_cell-db1bfa4f"></div>
-        <div id="observablehq-BarChart-db1bfa4f"></div>
-        <div id="observablehq-pallete-db1bfa4f"></div>
-        <div id="observablehq-add_on_change_to_textual_filter-db1bfa4f"></div>
-        <div id="observablehq-get_selected_foods-db1bfa4f"></div>
-        <div id="observablehq-highlight_foods-db1bfa4f"></div>
-        <div id="observablehq-highlight_color-db1bfa4f"></div>
-        <div id="observablehq-change_linechart-db1bfa4f"></div>
-        <div id="observablehq-LineChart3-db1bfa4f"></div>
-        <div id="observablehq-macros_faixas-db1bfa4f"></div>
-        <div id="observablehq-carboidratoFaixa-db1bfa4f"></div>
-        <div id="observablehq-proteinaFaixa-db1bfa4f"></div>
-        <div id="observablehq-gorduraFaixa-db1bfa4f"></div>
-        <div id="observablehq-LineChartMacros-db1bfa4f"></div>
-        <div id="observablehq-legenda-db1bfa4f"></div>
-        <div id="observablehq-atualize_micronutrients-db1bfa4f"></div>
-        <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4363">Projeto Final - Visualização de Dados
-                by
-                Bruno Pereira Fornaro
-                add
-                Vanessa Berwanger Wille</a></p>
-    </div>
+        <!-- Parte só últil no backend -->
+        <div class="not_visible">
+            <div id="observablehq-init_bar_chart_cell-13688fe5"></div>
+            <div id="observablehq-outputs_alimentos-13688fe5"></div>
+            <div id="observablehq-filter_food_to_bar_chart-13688fe5"></div>
+            <div id="observablehq-alimentos_selecionados-13688fe5"></div>
+            <div id="observablehq-filtro_textual-13688fe5"></div>
+            <div id="observablehq-num_alimento-13688fe5"></div>
+            <div id="observablehq-botao_confirmar-13688fe5"></div>
+            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-13688fe5"></div>
+            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-13688fe5"></div>
+            <div id="observablehq-function_confirm_buttom-13688fe5"></div>
+            <div id="observablehq-update_dropdown-13688fe5"></div>
+            <div id="observablehq-update_dropdown_cell-13688fe5"></div>
+            <div id="observablehq-brush_cell-13688fe5"></div>
+            <div id="observablehq-violinplot_function_cell-13688fe5"></div>
+            <div id="observablehq-BarChart-13688fe5"></div>
+            <div id="observablehq-pallete-13688fe5"></div>
+            <div id="observablehq-add_on_change_to_textual_filter-13688fe5"></div>
+            <div id="observablehq-get_selected_foods-13688fe5"></div>
+            <div id="observablehq-highlight_foods-13688fe5"></div>
+            <div id="observablehq-highlight_color-13688fe5"></div>
+            <div id="observablehq-change_linechart-13688fe5"></div>
+            <div id="observablehq-LineChart3-13688fe5"></div>
+            <div id="observablehq-macros_faixas-13688fe5"></div>
+            <div id="observablehq-carboidratoFaixa-13688fe5"></div>
+            <div id="observablehq-proteinaFaixa-13688fe5"></div>
+            <div id="observablehq-gorduraFaixa-13688fe5"></div>
+            <div id="observablehq-LineChartMacros-13688fe5"></div>
+            <div id="observablehq-legenda-13688fe5"></div>
+            <div id="observablehq-atualize_micronutrients-13688fe5"></div>
+            <div id="observablehq-principal_bg_color-13688fe5"></div>
+            <div id="observablehq-secondary_bg_color-13688fe5"></div>
+            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4444">Projeto Final - Visualização de Dados
+                    by
+                    Bruno Pereira Fornaro
+                    add
+                    Vanessa Berwanger Wille</a></p>
+        </div>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
 
-    <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
-    <script type="module">
-        import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-        import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4363.js?v=3";
-        new Runtime().module(define, name => {
-            if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-db1bfa4f"));
-            if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-db1bfa4f"));
-            if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-db1bfa4f"));
-            if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-db1bfa4f"));
-            if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-db1bfa4f"));
-            if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-db1bfa4f"));
-            if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-db1bfa4f"));
-            if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-db1bfa4f"));
-            if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-db1bfa4f"));
-            if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-db1bfa4f"));
-            if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-db1bfa4f"));
-            if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-db1bfa4f"));
-            if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-db1bfa4f"));
-            if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-db1bfa4f"));
-            if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-db1bfa4f"));
-            if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-db1bfa4f"));
-            if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-db1bfa4f"));
-            if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-db1bfa4f"));
-            if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-db1bfa4f"));
-            if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-db1bfa4f"));
-            if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-db1bfa4f"));
-            if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-db1bfa4f"));
-            if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-db1bfa4f"));
-            if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-db1bfa4f"));
-            if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-db1bfa4f"));
-            //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-db1bfa4f"));
-            //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-db1bfa4f"));
-            //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-db1bfa4f"));
-            //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-db1bfa4f"));
-            if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-db1bfa4f"));
-            if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-db1bfa4f"));
-            if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-db1bfa4f"));
-            if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-db1bfa4f"));
-            if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-db1bfa4f"));
-            if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-db1bfa4f"));
-            if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-db1bfa4f"));
-            if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-db1bfa4f"));
-            if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-db1bfa4f"));
-            if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-db1bfa4f"));
-            if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-db1bfa4f"));
-            if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-db1bfa4f"));
-            if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-db1bfa4f"));
-            return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
+        <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
+        <script type="module">
+            import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
+            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4444.js?v=3";
+            new Runtime().module(define, name => {
+                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-13688fe5"));
+                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-13688fe5"));
+                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-13688fe5"));
+                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-13688fe5"));
+                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-13688fe5"));
+                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-13688fe5"));
+                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-13688fe5"));
+                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-13688fe5"));
+                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-13688fe5"));
+                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-13688fe5"));
+                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-13688fe5"));
+                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-13688fe5"));
+                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-13688fe5"));
+                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-13688fe5"));
+                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-13688fe5"));
+                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-13688fe5"));
+                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-13688fe5"));
+                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-13688fe5"));
+                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-13688fe5"));
+                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-13688fe5"));
+                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-13688fe5"));
+                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-13688fe5"));
+                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-13688fe5"));
+                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-13688fe5"));
+                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-13688fe5"));
+                //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-13688fe5"));
+                //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-13688fe5"));
+                //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-13688fe5"));
+                //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-13688fe5"));
+                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-13688fe5"));
+                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-13688fe5"));
+                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-13688fe5"));
+                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-13688fe5"));
+                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-13688fe5"));
+                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-13688fe5"));
+                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-13688fe5"));
+                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-13688fe5"));
+                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-13688fe5"));
+                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-13688fe5"));
+                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-13688fe5"));
+                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-13688fe5"));
+                if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-13688fe5"));
+                if (name === "principal_bg_color") return new Inspector(document.querySelector("#observablehq-principal_bg_color-13688fe5"));
+                if (name === "secondary_bg_color") return new Inspector(document.querySelector("#observablehq-secondary_bg_color-13688fe5"));
+                return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
 
-        });
-    </script>
-    <!-- Versão -->
-    <!-- id: db1bfa4f -->
-    <!-- commit: 4363 -->
+            });
+        </script>
+        <!-- Versão -->
+        <!-- id: 13688fe5 -->
+        <!-- commit: 4444 -->
 </body>
