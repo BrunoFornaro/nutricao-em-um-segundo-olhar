@@ -21,6 +21,8 @@ O processo de desenvolvimento foi feito em conjunto, onde cada um dos integrante
   - Gráfico de barras dos macronutrientes.
   - Gráfico de barras do consumo de cada tipo de lipídeos.
   - Gráficos de barras de proporção para micronutrientes (minerais e vitaminas).
+
+TALVEZ FALAR COMO CADA VISUALIZAÇÃO FUNCIONA E AS PARTES INTERATIVAS. 
   
 FALAR AQUI SOBRE A DIVISÃO DO TRABALHO.
 
