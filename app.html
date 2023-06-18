@@ -1569,21 +1569,21 @@
             <div class="not_visible">
                 <div class="principal_container">
                     <h3>Informações do usuário</h3>
-                    <div id="observablehq-inserts_cell-27326a73"></div>
+                    <div id="observablehq-inserts_cell-768c5765"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-27326a73" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-768c5765" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-27326a73"></div>
+                <div id="observablehq-list_food_cell-768c5765"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-27326a73"></div>
+                <div id="observablehq-sliders_quantity_cell-768c5765"></div>
             </div>
 
 
@@ -1692,7 +1692,7 @@
 
 
                         <!-- Valor energético do prato -->
-                        <div id="observablehq-valor_energetico-27326a73"></div>
+                        <div id="observablehq-valor_energetico-768c5765"></div>
 
 
                         <!-- Gráfico de pizza -->
@@ -1784,12 +1784,13 @@
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
                                 <div id="legenda_violinplot"></div>
-                                <div id="observablehq-violinplot_cell-27326a73"></div>
+                                <div id="observablehq-violinplot_cell-768c5765"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
-                                <div id="observablehq-bar_chart_cell-27326a73"></div>
+                                <div id="legenda_barchart_prato"></div>
+                                <div id="observablehq-bar_chart_cell-768c5765"></div>
                             </div>
                         </div>
                     </div>
@@ -2148,9 +2149,9 @@
                         <div class="col-md-12">
                             <div class="row justify-content-center">
                                 <!-- CSS do gráfico -->
-                                <div id="observablehq-css_grafico_de_peso-27326a73"></div>
+                                <div id="observablehq-css_grafico_de_peso-768c5765"></div>
                                 <!-- Gráfico -->
-                                <div id="observablehq-chart_peso-27326a73" class="not_visible"></div>
+                                <div id="observablehq-chart_peso-768c5765" class="not_visible"></div>
                                 <div id="linechart_weight"></div>
                                 <div id="linechart_carb"></div>
                                 <div id="linechart_protein"></div>
@@ -2360,8 +2361,8 @@
                             </li>
                             <li class="nav-item today_tab" role="presentation" id="tab_macronutrientes_hoje">
                                 <a class="nav-link today_tab" id="macronutrientes_hoje-tab" data-toggle="tab"
-                                    href="#content_macronutrientes_hoje" role="tab" aria-controls="content_macronutrientes_hoje"
-                                    aria-selected="false">
+                                    href="#content_macronutrientes_hoje" role="tab"
+                                    aria-controls="content_macronutrientes_hoje" aria-selected="false">
                                     <h5>Macronutrientes
                                         <div class="info-field">
                                             <span class="info-icon">
@@ -2369,7 +2370,8 @@
                                             </span>
                                             <div class="info-content">
                                                 <p>
-                                                    Distribuição dos macronutrientes consumidos no dia de hoje e adequação aos seus objetivos.
+                                                    Distribuição dos macronutrientes consumidos no dia de hoje e
+                                                    adequação aos seus objetivos.
                                                 </p>
                                             </div>
                                         </div>
@@ -2385,28 +2387,29 @@
                                 <!-- Conteúdo da tab de gorduras -->
                                 <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
                                     aria-labelledby="gorduras-tab">
-                                    <!-- <div id="observablehq-lipids_cell-27326a73"></div> -->
+                                    <!-- <div id="observablehq-lipids_cell-768c5765"></div> -->
                                     <div id="legenda_fat_div"></div>
                                     <div id="fat_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de minerais -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-minerals_cell-27326a73"></div> -->
+                                    <!-- <div id="observablehq-minerals_cell-768c5765"></div> -->
                                     <div id="legenda_minerals_div"></div>
                                     <div id="minerals_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de vitaminas -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-vitamins_cell-27326a73"></div> -->
+                                    <!-- <div id="observablehq-vitamins_cell-768c5765"></div> -->
                                     <div id="legenda_vitamins_div"></div>
                                     <div id="vitamins_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de Macronutrientes do dia -->
-                                <div class="tab-pane fade not_visible today_tab" id="content_macronutrientes_hoje" role="tabpanel"
-                                    aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-vitamins_cell-27326a73"></div> -->
+                                <div class="tab-pane fade not_visible today_tab" id="content_macronutrientes_hoje"
+                                    role="tabpanel" aria-labelledby="minerais-tab">
+                                    <!-- <div id="observablehq-vitamins_cell-768c5765"></div> -->
+                                    <div id="legenda_barchart_hoje"></div>
                                     <div id="macronutrientes_hoje_graph_div"></div>
                                 </div>
                             </div>
@@ -2420,39 +2423,40 @@
 
         <!-- Parte só últil no backend -->
         <div class="not_visible">
-            <div id="observablehq-init_bar_chart_cell-27326a73"></div>
-            <div id="observablehq-outputs_alimentos-27326a73"></div>
-            <div id="observablehq-filter_food_to_bar_chart-27326a73"></div>
-            <div id="observablehq-alimentos_selecionados-27326a73"></div>
-            <div id="observablehq-filtro_textual-27326a73"></div>
-            <div id="observablehq-num_alimento-27326a73"></div>
-            <div id="observablehq-botao_confirmar-27326a73"></div>
-            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-27326a73"></div>
-            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-27326a73"></div>
-            <div id="observablehq-function_confirm_buttom-27326a73"></div>
-            <div id="observablehq-update_dropdown-27326a73"></div>
-            <div id="observablehq-update_dropdown_cell-27326a73"></div>
-            <div id="observablehq-brush_cell-27326a73"></div>
-            <div id="observablehq-violinplot_function_cell-27326a73"></div>
-            <div id="observablehq-BarChart-27326a73"></div>
-            <div id="observablehq-pallete-27326a73"></div>
-            <div id="observablehq-add_on_change_to_textual_filter-27326a73"></div>
-            <div id="observablehq-get_selected_foods-27326a73"></div>
-            <div id="observablehq-highlight_foods-27326a73"></div>
-            <div id="observablehq-highlight_color-27326a73"></div>
-            <div id="observablehq-change_linechart-27326a73"></div>
-            <div id="observablehq-LineChart3-27326a73"></div>
-            <div id="observablehq-macros_faixas-27326a73"></div>
-            <div id="observablehq-carboidratoFaixa-27326a73"></div>
-            <div id="observablehq-proteinaFaixa-27326a73"></div>
-            <div id="observablehq-gorduraFaixa-27326a73"></div>
-            <div id="observablehq-LineChartMacros-27326a73"></div>
-            <div id="observablehq-legenda-27326a73"></div>
-            <div id="observablehq-atualize_micronutrients-27326a73"></div>
-            <div id="observablehq-principal_bg_color-27326a73"></div>
-            <div id="observablehq-secondary_bg_color-27326a73"></div>
-            <div id="observablehq-gera_legenda_violinplot-27326a73"></div>
-            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4504">Projeto Final - Visualização de Dados
+            <div id="observablehq-init_bar_chart_cell-768c5765"></div>
+            <div id="observablehq-outputs_alimentos-768c5765"></div>
+            <div id="observablehq-filter_food_to_bar_chart-768c5765"></div>
+            <div id="observablehq-alimentos_selecionados-768c5765"></div>
+            <div id="observablehq-filtro_textual-768c5765"></div>
+            <div id="observablehq-num_alimento-768c5765"></div>
+            <div id="observablehq-botao_confirmar-768c5765"></div>
+            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-768c5765"></div>
+            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-768c5765"></div>
+            <div id="observablehq-function_confirm_buttom-768c5765"></div>
+            <div id="observablehq-update_dropdown-768c5765"></div>
+            <div id="observablehq-update_dropdown_cell-768c5765"></div>
+            <div id="observablehq-brush_cell-768c5765"></div>
+            <div id="observablehq-violinplot_function_cell-768c5765"></div>
+            <div id="observablehq-BarChart-768c5765"></div>
+            <div id="observablehq-pallete-768c5765"></div>
+            <div id="observablehq-add_on_change_to_textual_filter-768c5765"></div>
+            <div id="observablehq-get_selected_foods-768c5765"></div>
+            <div id="observablehq-highlight_foods-768c5765"></div>
+            <div id="observablehq-highlight_color-768c5765"></div>
+            <div id="observablehq-change_linechart-768c5765"></div>
+            <div id="observablehq-LineChart3-768c5765"></div>
+            <div id="observablehq-macros_faixas-768c5765"></div>
+            <div id="observablehq-carboidratoFaixa-768c5765"></div>
+            <div id="observablehq-proteinaFaixa-768c5765"></div>
+            <div id="observablehq-gorduraFaixa-768c5765"></div>
+            <div id="observablehq-LineChartMacros-768c5765"></div>
+            <div id="observablehq-legenda-768c5765"></div>
+            <div id="observablehq-atualize_micronutrients-768c5765"></div>
+            <div id="observablehq-principal_bg_color-768c5765"></div>
+            <div id="observablehq-secondary_bg_color-768c5765"></div>
+            <div id="observablehq-gera_legenda_violinplot-768c5765"></div>
+            <div id="observablehq-legendas-768c5765"></div>
+            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4538">Projeto Final - Visualização de Dados
                     by
                     Bruno Pereira Fornaro
                     add
@@ -2464,58 +2468,59 @@
         <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
         <script type="module">
             import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4504.js?v=3";
+            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4538.js?v=3";
             new Runtime().module(define, name => {
-                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-27326a73"));
-                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-27326a73"));
-                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-27326a73"));
-                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-27326a73"));
-                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-27326a73"));
-                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-27326a73"));
-                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-27326a73"));
-                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-27326a73"));
-                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-27326a73"));
-                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-27326a73"));
-                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-27326a73"));
-                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-27326a73"));
-                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-27326a73"));
-                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-27326a73"));
-                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-27326a73"));
-                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-27326a73"));
-                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-27326a73"));
-                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-27326a73"));
-                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-27326a73"));
-                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-27326a73"));
-                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-27326a73"));
-                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-27326a73"));
-                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-27326a73"));
-                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-27326a73"));
-                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-27326a73"));
-                //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-27326a73"));
-                //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-27326a73"));
-                //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-27326a73"));
-                //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-27326a73"));
-                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-27326a73"));
-                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-27326a73"));
-                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-27326a73"));
-                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-27326a73"));
-                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-27326a73"));
-                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-27326a73"));
-                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-27326a73"));
-                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-27326a73"));
-                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-27326a73"));
-                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-27326a73"));
-                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-27326a73"));
-                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-27326a73"));
-                if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-27326a73"));
-                if (name === "principal_bg_color") return new Inspector(document.querySelector("#observablehq-principal_bg_color-27326a73"));
-                if (name === "secondary_bg_color") return new Inspector(document.querySelector("#observablehq-secondary_bg_color-27326a73"));
-                if (name === "gera_legenda_violinplot") return new Inspector(document.querySelector("#observablehq-gera_legenda_violinplot-27326a73"));
+                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-768c5765"));
+                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-768c5765"));
+                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-768c5765"));
+                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-768c5765"));
+                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-768c5765"));
+                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-768c5765"));
+                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-768c5765"));
+                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-768c5765"));
+                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-768c5765"));
+                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-768c5765"));
+                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-768c5765"));
+                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-768c5765"));
+                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-768c5765"));
+                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-768c5765"));
+                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-768c5765"));
+                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-768c5765"));
+                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-768c5765"));
+                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-768c5765"));
+                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-768c5765"));
+                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-768c5765"));
+                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-768c5765"));
+                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-768c5765"));
+                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-768c5765"));
+                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-768c5765"));
+                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-768c5765"));
+                //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-768c5765"));
+                //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-768c5765"));
+                //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-768c5765"));
+                //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-768c5765"));
+                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-768c5765"));
+                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-768c5765"));
+                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-768c5765"));
+                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-768c5765"));
+                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-768c5765"));
+                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-768c5765"));
+                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-768c5765"));
+                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-768c5765"));
+                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-768c5765"));
+                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-768c5765"));
+                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-768c5765"));
+                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-768c5765"));
+                if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-768c5765"));
+                if (name === "principal_bg_color") return new Inspector(document.querySelector("#observablehq-principal_bg_color-768c5765"));
+                if (name === "secondary_bg_color") return new Inspector(document.querySelector("#observablehq-secondary_bg_color-768c5765"));
+                if (name === "gera_legenda_violinplot") return new Inspector(document.querySelector("#observablehq-gera_legenda_violinplot-768c5765"));
+                if (name === "legendas") return new Inspector(document.querySelector("#observablehq-legendas-768c5765"));
                 return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
 
             });
         </script>
         <!-- Versão -->
-        <!-- id: 27326a73 -->
-        <!-- commit: 4504 -->
+        <!-- id: 768c5765 -->
+        <!-- commit: 4538 -->
 </body>

@@ -428,3 +428,8 @@ input[type="range"]::-webkit-slider-thumb:active {
 #register {
     width: 100%;
 }
+
+.matrixchart_food_tooltip,
+.piechart_food_tooltip {
+    max-width: 400px;
+}
