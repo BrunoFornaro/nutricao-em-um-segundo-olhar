@@ -37,7 +37,7 @@
 
     <!-- Importar scripts do Firebase -->
     <script type="module">
-        const DEBUG = true;
+        const DEBUG = false;
 
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -74,6 +74,7 @@
         for (var i in data) {
             food_indexes[data[i]["Nome"]] = i;
         }
+
         var nutritional_columns = [
             "Saturados (g)",
             "Monoinsaturados (g)",
@@ -115,13 +116,14 @@
             messageForUser(document.getElementById(elements[i]), "Carregando dados...", "info", 100);
         }
 
-        const fake_data = false
+        const fake_data = false;
 
         if (fake_data) {
             populateWithFakeData();
 
             function populateWithFakeData() {
                 // Gera dados falsos nos ultimos 2 meses
+                console.log("Começou a gerar dados falsos")
                 // Função para gerar um número aleatório entre min e max
                 function gerarNumeroDecimalAleatorio(min, max) {
                     return Math.random() * (max - min) + min;
@@ -139,6 +141,8 @@
                     curr_month += 12
                     curr_year -= 1
                 }
+                var last_weight = -1;
+                var weight = -1;
 
                 // Itera pelos dias do mês até chegar no dia de hoje
                 while (
@@ -146,6 +150,8 @@
                     curr_month != today.getMonth() + 1 ||
                     curr_year != today.getFullYear()
                 ) {
+                    last_weight = weight;
+
                     // Cria a string do dia
                     var month_str = curr_month
                     if (month_str < 10) {
@@ -159,15 +165,15 @@
 
                     // Gera os dados aleatórios
                     var foods = ["Arroz tipo 2 cozido", "Feijão preto cozido", "Frango filé à milanesa", "Toucinho frito"]
-                    var mins = [140, 35, 60, 8]
-                    var maxs = [180, 65, 80, 12]
+                    var mins = [605, 175, 255, 30]
+                    var maxs = [675, 225, 305, 40]
 
                     // Adiciona os dados do prato no banco de dados
                     for (var i in foods) {
                         var food = foods[i]
                         var min = mins[i]
                         var max = maxs[i]
-                        var quantity = gerarNumeroDecimalAleatorio(min, max) * 4;
+                        var quantity = gerarNumeroDecimalAleatorio(min, max);
                         var docRef = doc(
                             db,
                             user_uid,
@@ -175,7 +181,7 @@
                             "plates",
                             "0",
                             "food",
-                            i
+                            (parseInt(i) + 1).toString()
                         );
                         setDoc(docRef, {
                             name: food,
@@ -188,6 +194,32 @@
                             })
                             .catch((error) => {
                                 console.error("Error writing document: ", error);
+                            });
+
+
+                        // Cria (ou atualiza) o documento para o usuário no Firestore (histórico)
+                        if (last_weight == -1) {
+                            weight = gerarNumeroDecimalAleatorio(65, 75)
+                        } else {
+                            weight -= gerarNumeroDecimalAleatorio(-0.5, 0.5)
+                        }
+                        setDoc(doc(db, user_uid, date_str, "user_info", "info"), {
+                            weight: weight,
+                            last_weight: last_weight,
+                            daily_calories: 2000,
+                            carbs_percent: 50,
+                            lipids_percent: 25,
+                            protein_percent: 25,
+                            tolerance: 10,
+                            num_daily_plates: 4,
+                            initial: last_weight == -1 ? 1 : 0,
+                        })
+                            .then(() => {
+                                console.log("Documento atualizado com sucesso!");
+                            })
+                            .catch((error) => {
+                                // Ocorreu um erro ao gravar no Firestore
+                                console.error("Erro ao criar o documento: ", error);
                             });
                     }
 
@@ -203,6 +235,34 @@
                         }
                     }
                 }
+
+                // Cria (ou atualiza) o documento para o usuário no Firestore (atual)
+                setDoc(doc(db, "user_info", user_uid), {
+                    weight: weight,
+                    last_weight: last_weight,
+                    daily_calories: 2000,
+                    carbs_percent: 50,
+                    lipids_percent: 25,
+                    protein_percent: 25,
+                    tolerance: 10,
+                    num_daily_plates: 4,
+                    initial: last_weight == -1 ? 1 : 0,
+                })
+                    .then(() => {
+                        console.log("Documento atualizado com sucesso!");
+
+                        // Exibe a mensagem de sucesso
+                        messageForUser(mensagem_objetivos, "Atualizado com sucesso!", "success", 3);
+                    })
+                    .catch((error) => {
+                        // Ocorreu um erro ao gravar no Firestore
+                        console.error("Erro ao criar o documento: ", error);
+
+
+                        // Exibe a mensagem de falha
+                        messageForUser(mensagem_objetivos, "Houve algum problema ao atualizar :(", "danger", 5);
+                    });
+                console.log("Terminou de registrar os dados falsos")
             }
         }
 
@@ -485,6 +545,62 @@
                         highlight_foods();
                     }
                 );
+        }
+
+        d3.select("#filtro_textual_" + 1)
+                .on("change",
+                    function () {
+                        highlight_foods();
+                    }
+                );
+
+        function get_selected_foods(data) {
+            // Obtém a lista os alimentos selecionados
+            // Obtém o número de seletores de alimentos já existentes
+            var num_selectors = get_children(document.getElementById("alimentos_do_prato")).length;
+            var selected_food = data.filter( // filtra os alimentos selecionados
+                function (d) {
+                    // Para cada seletor existente
+                    for (let num = 1; num <= num_selectors; num++) {
+                        // Se o seletor tiver um alimento selecionado e o valor for igual d.Nome
+                        if (document.getElementById("filtro_textual_" + num).value == d.Nome) {
+                            // Retorna os dados do alimento que foi selecionado
+                            return d;
+                        }
+                    }
+                }
+            );
+            
+            return selected_food;
+        }
+
+        const secondary_bg_color="#FDFCFC";
+        const principal_bg_color="#9DDFBB";
+        const highlight_color = "#035931";
+
+        function highlight_foods() {
+            var selected_food = get_selected_foods(data);
+            var columns = ["Carboidrato (g)", "Proteína (g)", "Lipídeos (g)"];
+            
+            // Pinta todas as barras com a cor padrão
+            for (let col = 0; col < 3; col++) {
+                var coluna = columns[col];
+                for (let food = 0; food < data.length; food++) {
+                    d3.select("#violinplot_bar_" + col + "_" + Math.floor(data[food][coluna])).attr("fill", principal_bg_color);
+                }
+            }
+            for (let i = 0; i < selected_food.length; i++) {
+                var d = selected_food[i];
+
+                // Highlight nas barras
+                for (let col = 0; col < 3; col++) {
+                    var coluna = columns[col];
+                    console.log("#violinplot_bar_" + col + "_" + Math.floor(d[coluna]))
+                    d3.select("#violinplot_bar_" + col + "_" + Math.floor(d[coluna])).attr("fill", highlight_color);
+                }
+                // Highlight nas bolinhas
+                d3.select("#circle_matrixchart_" + d.id).attr("fill", highlight_color);
+            }
         }
 
         // Função para remover seletores de alimentos
@@ -1569,21 +1685,21 @@
             <div class="not_visible">
                 <div class="principal_container">
                     <h3>Informações do usuário</h3>
-                    <div id="observablehq-inserts_cell-768c5765"></div>
+                    <div id="observablehq-inserts_cell-8360d338"></div>
                 </div>
             </div>
 
 
             <!-- Parte só últil no backend -->
-            <div id="observablehq-insert_atualize_barchart_cell-768c5765" class="not_visible"></div>
+            <div id="observablehq-insert_atualize_barchart_cell-8360d338" class="not_visible"></div>
 
             <!-- Seletor dos alimentos e sliders -->
             <div id="seletor_e_sliders" class="not_visible">
                 <!-- Seletor dos alimentos -->
-                <div id="observablehq-list_food_cell-768c5765"></div>
+                <div id="observablehq-list_food_cell-8360d338"></div>
 
                 <!-- Sliders para os pesos dos alimentos -->
-                <div id="observablehq-sliders_quantity_cell-768c5765"></div>
+                <div id="observablehq-sliders_quantity_cell-8360d338"></div>
             </div>
 
 
@@ -1692,7 +1808,7 @@
 
 
                         <!-- Valor energético do prato -->
-                        <div id="observablehq-valor_energetico-768c5765"></div>
+                        <div id="observablehq-valor_energetico-8360d338"></div>
 
 
                         <!-- Gráfico de pizza -->
@@ -1784,13 +1900,13 @@
                             <div class="tabs_charts tab-pane fade show active" id="content_violin" role="tabpanel"
                                 aria-labelledby="tab_violin">
                                 <div id="legenda_violinplot"></div>
-                                <div id="observablehq-violinplot_cell-768c5765"></div>
+                                <div id="observablehq-violinplot_cell-8360d338"></div>
                             </div>
                             <div class="tabs_charts tab-pane fade not_visible fix_thin_width" id="content_bar"
                                 role="tabpanel" aria-labelledby="tab_bar">
                                 <!-- Gráfico de barras -->
                                 <div id="legenda_barchart_prato"></div>
-                                <div id="observablehq-bar_chart_cell-768c5765"></div>
+                                <div id="observablehq-bar_chart_cell-8360d338"></div>
                             </div>
                         </div>
                     </div>
@@ -2149,9 +2265,9 @@
                         <div class="col-md-12">
                             <div class="row justify-content-center">
                                 <!-- CSS do gráfico -->
-                                <div id="observablehq-css_grafico_de_peso-768c5765"></div>
+                                <div id="observablehq-css_grafico_de_peso-8360d338"></div>
                                 <!-- Gráfico -->
-                                <div id="observablehq-chart_peso-768c5765" class="not_visible"></div>
+                                <div id="observablehq-chart_peso-8360d338" class="not_visible"></div>
                                 <div id="linechart_weight"></div>
                                 <div id="linechart_carb"></div>
                                 <div id="linechart_protein"></div>
@@ -2387,28 +2503,28 @@
                                 <!-- Conteúdo da tab de gorduras -->
                                 <div class="tab-pane fade show active today_tab" id="content_gorduras" role="tabpanel"
                                     aria-labelledby="gorduras-tab">
-                                    <!-- <div id="observablehq-lipids_cell-768c5765"></div> -->
+                                    <!-- <div id="observablehq-lipids_cell-8360d338"></div> -->
                                     <div id="legenda_fat_div"></div>
                                     <div id="fat_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de minerais -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_minerais" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-minerals_cell-768c5765"></div> -->
+                                    <!-- <div id="observablehq-minerals_cell-8360d338"></div> -->
                                     <div id="legenda_minerals_div"></div>
                                     <div id="minerals_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de vitaminas -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_vitaminas" role="tabpanel"
                                     aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-vitamins_cell-768c5765"></div> -->
+                                    <!-- <div id="observablehq-vitamins_cell-8360d338"></div> -->
                                     <div id="legenda_vitamins_div"></div>
                                     <div id="vitamins_graph_div"></div>
                                 </div>
                                 <!-- Conteúdo da tab de Macronutrientes do dia -->
                                 <div class="tab-pane fade not_visible today_tab" id="content_macronutrientes_hoje"
                                     role="tabpanel" aria-labelledby="minerais-tab">
-                                    <!-- <div id="observablehq-vitamins_cell-768c5765"></div> -->
+                                    <!-- <div id="observablehq-vitamins_cell-8360d338"></div> -->
                                     <div id="legenda_barchart_hoje"></div>
                                     <div id="macronutrientes_hoje_graph_div"></div>
                                 </div>
@@ -2423,40 +2539,41 @@
 
         <!-- Parte só últil no backend -->
         <div class="not_visible">
-            <div id="observablehq-init_bar_chart_cell-768c5765"></div>
-            <div id="observablehq-outputs_alimentos-768c5765"></div>
-            <div id="observablehq-filter_food_to_bar_chart-768c5765"></div>
-            <div id="observablehq-alimentos_selecionados-768c5765"></div>
-            <div id="observablehq-filtro_textual-768c5765"></div>
-            <div id="observablehq-num_alimento-768c5765"></div>
-            <div id="observablehq-botao_confirmar-768c5765"></div>
-            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-768c5765"></div>
-            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-768c5765"></div>
-            <div id="observablehq-function_confirm_buttom-768c5765"></div>
-            <div id="observablehq-update_dropdown-768c5765"></div>
-            <div id="observablehq-update_dropdown_cell-768c5765"></div>
-            <div id="observablehq-brush_cell-768c5765"></div>
-            <div id="observablehq-violinplot_function_cell-768c5765"></div>
-            <div id="observablehq-BarChart-768c5765"></div>
-            <div id="observablehq-pallete-768c5765"></div>
-            <div id="observablehq-add_on_change_to_textual_filter-768c5765"></div>
-            <div id="observablehq-get_selected_foods-768c5765"></div>
-            <div id="observablehq-highlight_foods-768c5765"></div>
-            <div id="observablehq-highlight_color-768c5765"></div>
-            <div id="observablehq-change_linechart-768c5765"></div>
-            <div id="observablehq-LineChart3-768c5765"></div>
-            <div id="observablehq-macros_faixas-768c5765"></div>
-            <div id="observablehq-carboidratoFaixa-768c5765"></div>
-            <div id="observablehq-proteinaFaixa-768c5765"></div>
-            <div id="observablehq-gorduraFaixa-768c5765"></div>
-            <div id="observablehq-LineChartMacros-768c5765"></div>
-            <div id="observablehq-legenda-768c5765"></div>
-            <div id="observablehq-atualize_micronutrients-768c5765"></div>
-            <div id="observablehq-principal_bg_color-768c5765"></div>
-            <div id="observablehq-secondary_bg_color-768c5765"></div>
-            <div id="observablehq-gera_legenda_violinplot-768c5765"></div>
-            <div id="observablehq-legendas-768c5765"></div>
-            <p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4538">Projeto Final - Visualização de Dados
+            <div id="observablehq-init_bar_chart_cell-8360d338"></div>
+            <div id="observablehq-outputs_alimentos-8360d338"></div>
+            <div id="observablehq-filter_food_to_bar_chart-8360d338"></div>
+            <div id="observablehq-alimentos_selecionados-8360d338"></div>
+            <div id="observablehq-filtro_textual-8360d338"></div>
+            <div id="observablehq-num_alimento-8360d338"></div>
+            <div id="observablehq-botao_confirmar-8360d338"></div>
+            <div id="observablehq-function_to_sliders_of_quantity_of_food_cell-8360d338"></div>
+            <div id="observablehq-function_to_buttons_of_plus_and_less_selectors-8360d338"></div>
+            <div id="observablehq-function_confirm_buttom-8360d338"></div>
+            <div id="observablehq-update_dropdown-8360d338"></div>
+            <div id="observablehq-update_dropdown_cell-8360d338"></div>
+            <div id="observablehq-brush_cell-8360d338"></div>
+            <div id="observablehq-violinplot_function_cell-8360d338"></div>
+            <div id="observablehq-BarChart-8360d338"></div>
+            <div id="observablehq-pallete-8360d338"></div>
+            <div id="observablehq-add_on_change_to_textual_filter-8360d338"></div>
+            <div id="observablehq-get_selected_foods-8360d338"></div>
+            <div id="observablehq-highlight_foods-8360d338"></div>
+            <div id="observablehq-highlight_color-8360d338"></div>
+            <div id="observablehq-change_linechart-8360d338"></div>
+            <div id="observablehq-LineChart3-8360d338"></div>
+            <div id="observablehq-macros_faixas-8360d338"></div>
+            <div id="observablehq-carboidratoFaixa-8360d338"></div>
+            <div id="observablehq-proteinaFaixa-8360d338"></div>
+            <div id="observablehq-gorduraFaixa-8360d338"></div>
+            <div id="observablehq-LineChartMacros-8360d338"></div>
+            <div id="observablehq-legenda-8360d338"></div>
+            <div id="observablehq-atualize_micronutrients-8360d338"></div>
+            <div id="observablehq-principal_bg_color-8360d338"></div>
+            <div id="observablehq-secondary_bg_color-8360d338"></div>
+            <div id="observablehq-gera_legenda_violinplot-8360d338"></div>
+            <div id="observablehq-legendas-8360d338"></div>
+            <div id="observablehq-highlight_filtro_1-8360d338"></div>
+<p>Credit: <a href="https://observablehq.com/d/dda5ba56ef8ee385@4554">Projeto Final - Visualização de Dados
                     by
                     Bruno Pereira Fornaro
                     add
@@ -2468,59 +2585,60 @@
         <!-- Link com o repositório do projeto no observable: https://observablehq.com/d/ffb89fcb60d326fa -->
         <script type="module">
             import { Runtime, Inspector } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4538.js?v=3";
+            import define from "https://api.observablehq.com/d/dda5ba56ef8ee385@4554.js?v=3";
             new Runtime().module(define, name => {
-                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-768c5765"));
-                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-768c5765"));
-                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-768c5765"));
-                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-768c5765"));
-                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-768c5765"));
-                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-768c5765"));
-                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-768c5765"));
-                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-768c5765"));
-                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-768c5765"));
-                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-768c5765"));
-                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-768c5765"));
-                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-768c5765"));
-                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-768c5765"));
-                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-768c5765"));
-                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-768c5765"));
-                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-768c5765"));
-                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-768c5765"));
-                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-768c5765"));
-                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-768c5765"));
-                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-768c5765"));
-                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-768c5765"));
-                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-768c5765"));
-                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-768c5765"));
-                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-768c5765"));
-                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-768c5765"));
-                //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-768c5765"));
-                //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-768c5765"));
-                //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-768c5765"));
-                //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-768c5765"));
-                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-768c5765"));
-                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-768c5765"));
-                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-768c5765"));
-                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-768c5765"));
-                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-768c5765"));
-                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-768c5765"));
-                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-768c5765"));
-                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-768c5765"));
-                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-768c5765"));
-                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-768c5765"));
-                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-768c5765"));
-                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-768c5765"));
-                if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-768c5765"));
-                if (name === "principal_bg_color") return new Inspector(document.querySelector("#observablehq-principal_bg_color-768c5765"));
-                if (name === "secondary_bg_color") return new Inspector(document.querySelector("#observablehq-secondary_bg_color-768c5765"));
-                if (name === "gera_legenda_violinplot") return new Inspector(document.querySelector("#observablehq-gera_legenda_violinplot-768c5765"));
-                if (name === "legendas") return new Inspector(document.querySelector("#observablehq-legendas-768c5765"));
-                return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
+                if (name === "inserts_cell") return new Inspector(document.querySelector("#observablehq-inserts_cell-8360d338"));
+                if (name === "insert_atualize_barchart_cell") return new Inspector(document.querySelector("#observablehq-insert_atualize_barchart_cell-8360d338"));
+                if (name === "list_food_cell") return new Inspector(document.querySelector("#observablehq-list_food_cell-8360d338"));
+                if (name === "sliders_quantity_cell") return new Inspector(document.querySelector("#observablehq-sliders_quantity_cell-8360d338"));
+                if (name === "violinplot_cell") return new Inspector(document.querySelector("#observablehq-violinplot_cell-8360d338"));
+                if (name === "bar_chart_cell") return new Inspector(document.querySelector("#observablehq-bar_chart_cell-8360d338"));
+                if (name === "valor_energetico") return new Inspector(document.querySelector("#observablehq-valor_energetico-8360d338"));
+                if (name === "init_bar_chart_cell") return new Inspector(document.querySelector("#observablehq-init_bar_chart_cell-8360d338"));
+                if (name === "outputs_alimentos") return new Inspector(document.querySelector("#observablehq-outputs_alimentos-8360d338"));
+                if (name === "filter_food_to_bar_chart") return new Inspector(document.querySelector("#observablehq-filter_food_to_bar_chart-8360d338"));
+                if (name === "alimentos_selecionados") return new Inspector(document.querySelector("#observablehq-alimentos_selecionados-8360d338"));
+                if (name === "filtro_textual") return new Inspector(document.querySelector("#observablehq-filtro_textual-8360d338"));
+                if (name === "num_alimento") return new Inspector(document.querySelector("#observablehq-num_alimento-8360d338"));
+                if (name === "botao_confirmar") return new Inspector(document.querySelector("#observablehq-botao_confirmar-8360d338"));
+                if (name === "function_to_sliders_of_quantity_of_food_cell") return new Inspector(document.querySelector("#observablehq-function_to_sliders_of_quantity_of_food_cell-8360d338"));
+                if (name === "function_to_buttons_of_plus_and_less_selectors") return new Inspector(document.querySelector("#observablehq-function_to_buttons_of_plus_and_less_selectors-8360d338"));
+                if (name === "function_confirm_buttom") return new Inspector(document.querySelector("#observablehq-function_confirm_buttom-8360d338"));
+                if (name === "update_dropdown") return new Inspector(document.querySelector("#observablehq-update_dropdown-8360d338"));
+                if (name === "update_dropdown_cell") return new Inspector(document.querySelector("#observablehq-update_dropdown_cell-8360d338"));
+                if (name === "brush_cell") return new Inspector(document.querySelector("#observablehq-brush_cell-8360d338"));
+                if (name === "violinplot_function_cell") return new Inspector(document.querySelector("#observablehq-violinplot_function_cell-8360d338"));
+                if (name === "BarChart") return new Inspector(document.querySelector("#observablehq-BarChart-8360d338"));
+                if (name === "pallete") return new Inspector(document.querySelector("#observablehq-pallete-8360d338"));
+                if (name === "css_grafico_de_peso") return new Inspector(document.querySelector("#observablehq-css_grafico_de_peso-8360d338"));
+                if (name === "chart_peso") return new Inspector(document.querySelector("#observablehq-chart_peso-8360d338"));
+                //if (name === "div_pie_chart") return new Inspector(document.querySelector("#observablehq-div_pie_chart-8360d338"));
+                //if (name === "lipids_cell") return new Inspector(document.querySelector("#observablehq-lipids_cell-8360d338"));
+                //if (name === "minerals_cell") return new Inspector(document.querySelector("#observablehq-minerals_cell-8360d338"));
+                //if (name === "vitamins_cell") return new Inspector(document.querySelector("#observablehq-vitamins_cell-8360d338"));
+                if (name === "add_on_change_to_textual_filter") return new Inspector(document.querySelector("#observablehq-add_on_change_to_textual_filter-8360d338"));
+                if (name === "get_selected_foods") return new Inspector(document.querySelector("#observablehq-get_selected_foods-8360d338"));
+                if (name === "highlight_foods") return new Inspector(document.querySelector("#observablehq-highlight_foods-8360d338"));
+                if (name === "highlight_color") return new Inspector(document.querySelector("#observablehq-highlight_color-8360d338"));
+                if (name === "change_linechart") return new Inspector(document.querySelector("#observablehq-change_linechart-8360d338"));
+                if (name === "LineChart3") return new Inspector(document.querySelector("#observablehq-LineChart3-8360d338"));
+                if (name === "macros_faixas") return new Inspector(document.querySelector("#observablehq-macros_faixas-8360d338"));
+                if (name === "carboidratoFaixa") return new Inspector(document.querySelector("#observablehq-carboidratoFaixa-8360d338"));
+                if (name === "proteinaFaixa") return new Inspector(document.querySelector("#observablehq-proteinaFaixa-8360d338"));
+                if (name === "gorduraFaixa") return new Inspector(document.querySelector("#observablehq-gorduraFaixa-8360d338"));
+                if (name === "LineChartMacros") return new Inspector(document.querySelector("#observablehq-LineChartMacros-8360d338"));
+                if (name === "legenda") return new Inspector(document.querySelector("#observablehq-legenda-8360d338"));
+                if (name === "atualize_micronutrients") return new Inspector(document.querySelector("#observablehq-atualize_micronutrients-8360d338"));
+                if (name === "principal_bg_color") return new Inspector(document.querySelector("#observablehq-principal_bg_color-8360d338"));
+                if (name === "secondary_bg_color") return new Inspector(document.querySelector("#observablehq-secondary_bg_color-8360d338"));
+                if (name === "gera_legenda_violinplot") return new Inspector(document.querySelector("#observablehq-gera_legenda_violinplot-8360d338"));
+                if (name === "legendas") return new Inspector(document.querySelector("#observablehq-legendas-8360d338"));
+                if (name === "highlight_filtro_1") return new Inspector(document.querySelector("#observablehq-highlight_filtro_1-8360d338"));
+return ["chart_peso", "chart_carb", "chart_prot", "chart_lip", "legenda_peso", "add_selector", "violinplot_function_cell", "MatrixChart", "brush_cell"].includes(name);
 
             });
         </script>
         <!-- Versão -->
-        <!-- id: 768c5765 -->
-        <!-- commit: 4538 -->
+        <!-- id: 8360d338 -->
+        <!-- commit: 4554 -->
 </body>
