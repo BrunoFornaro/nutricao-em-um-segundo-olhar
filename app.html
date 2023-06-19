@@ -313,7 +313,7 @@
             var data = {};
 
             fieldIds.forEach(function (fieldId) {
-                var value = parseInt(document.getElementById(fieldId).value);
+                var value = parseFloat(document.getElementById(fieldId).value);
                 if (isNaN(value)) {
                     var placeholder = document.getElementById(fieldId).placeholder;
                     data[fieldId] = placeholder;
