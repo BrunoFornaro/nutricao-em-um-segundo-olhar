@@ -3,7 +3,7 @@
 
 ## Nutrição em um Olhar
 
-Trabalho elaborado pelos alunos Bruno Fornaro Pereira [Bruno Fornaro Pereira](https://github.com/BrunoFornaro) e [Vanessa Berwanger Wille](https://github.com/VanessaWille) para a disciplina de Visualização de Dados.. 
+Trabalho elaborado pelos alunos Bruno Fornaro Pereira [Bruno Fornaro Pereira](https://github.com/BrunoFornaro) e [Vanessa Berwanger Wille](https://github.com/VanessaWille) para a disciplina de Visualização de Dados.
 
 O tema escolhido para esse trabalho está relacionado à área de nutrição, onde procuramos evoluir o trabalho realizado para a tarefa 3 da disciplina.
 O objetivo é possibilitar ao usuário um maior entendimento sobre os alimentos, filtragem dos mesmo de acordo com os macronutriente e compreender se suas escolhas alimentares estão balanceadas: "O conhecimento da composição dos alimentos consumidos no Brasil é fundamental para se alcançar a segurança alimentar e nutricional. As informações de composição de alimentos são pilares básicos para a educação nutricional e a avaliação da ingestão de nutrientes de indivíduos." (Tabela Brasileira de Composição de Alimentos – TACO, 4ª edição revisada e ampliada). 
@@ -59,6 +59,8 @@ As informações de quantas refeições diárias são feitas são preenchidas pe
 
 - “Particularmente, acho que as cores no gráfico de barras dos macronutrientes não estão acrescentando tanto na visualização, penso que se fossem barras empilhadas poderia ser interessante para visualizar o quanto cada ingrediente contribui de maneira separada.”: 
 Para o nosso objetivo, de mostrar a adequação da alimentação do usuário, acreditamos que o gráfico de barras é mais útil para mostrar essa informação e também é mais simples para o usuário ver a variação conforme altera as informações do prato, ajudando a montar um prato adequado aos seus objetivos. Entretanto, agora também mostramos as informações da contribuição dos macronutrientes de cada alimento em tooltips, tanto no gráfico de pizza (o “gráfico de prato”) quanto no violinplot (em uma tooltip aninhada por um gráfico com uma matriz de pontos, que representa todos os alimentos em uma determinada faixa do violino de cada macronutriente).
+
+- "Padronizar o número de casas decimais dos valores informados pela tooltip e o formato das barras dos gráficos da aba Hoje, uma vez que as bordas arredondadas podem atrapalhar um pouco a interpretação.": As bordas arredondas foram retiradas e o número de casas decimais dos valores informados pela tooltips foram padronizadas
 
 - Também surgiram algumas críticas em relação ao violin plot, citando a falta de relação de um mesmo ponto nas diferentes colunas e a questão da base dos gráficos estarem 'encostando': Esse problemas foram resolvidos e o gráfico de violino foi quase todo reformulado para que se tornasse uma visualização mais adequada e suportasse todos os alimentos da nossa base de dados.
 
