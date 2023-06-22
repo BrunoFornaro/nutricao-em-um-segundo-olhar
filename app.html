@@ -1655,7 +1655,11 @@
             <div class="principal_container">
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="tabs_pages nav-link active" href="#content_selecao_prato" id="tab_selecao_prato"
+                        <a class="tabs_pages nav-link active" href="#content_dados_do_usuario" id="tab_dados_do_usuario"
+                            type="button">Meus Dados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="tabs_pages nav-link" href="#content_selecao_prato" id="tab_selecao_prato"
                             type="button">Montar Prato</a>
                     </li>
                     <li class="nav-item">
@@ -1665,10 +1669,6 @@
                     <li class="nav-item">
                         <a class="tabs_pages nav-link" href="#content_peso" id="tab_peso" type="button">Dados do mês</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="tabs_pages nav-link" href="#content_dados_do_usuario" id="tab_dados_do_usuario"
-                            type="button">Meus Dados</a>
-                    </li>
                 </ul>
 
             </div>
@@ -1677,7 +1677,7 @@
     </div>
     <!-- Conteúdo das tabs princiapis do app -->
     <div class="tab-content">
-        <div class="tabs_pages tab-pane fade show active" id="content_selecao_prato" role="tabpanel"
+        <div class="tabs_pages tab-pane fade not_visible" id="content_selecao_prato" role="tabpanel"
             aria-labelledby="tab_selecao_prato">
             <!-- Aba de seleção do prato -->
 
@@ -1918,7 +1918,7 @@
         </div>
 
         <!-- Aba de objetivos -->
-        <div class="tabs_pages tab-pane fade not_visible" id="content_dados_do_usuario" role="tabpanel"
+        <div class="tabs_pages tab-pane fade show active" id="content_dados_do_usuario" role="tabpanel"
             aria-labelledby="tab_dados_do_usuario">
             <!-- Aba de objetivos -->
             <!-- Formulário de Inserção de dados -->
