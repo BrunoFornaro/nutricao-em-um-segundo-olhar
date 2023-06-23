@@ -12,7 +12,7 @@ O objetivo é possibilitar ao usuário um maior entendimento sobre os alimentos,
 
 ### Uma visão geral do processo de desenvolvimento.
 
-O processo de desenvolvimento foi feito em conjunto, onde cada um dos integrantes do grupo contribuiu com ideias e sugestões. A partir disso, foram feitos alguns esboços de como evoluir as visualizações já existentes, especialmente o filtro do gráfico de violino, que precisava lidar com uma quantidade maior de dados, e desenvolvidas novos gráficos usando a biblioteca D3.js:
+O processo de desenvolvimento foi feito em conjunto, onde cada um dos integrantes do grupo contribuiu com ideias e sugestões. A partir disso, foram feitos alguns esboços de como evoluir as visualizações já existentes, especialmente o filtro do gráfico de violino, que precisava lidar com uma quantidade maior de dados, e desenvolvidos novos gráficos usando a biblioteca D3.js:
 
 - Violin plot para filtragem dos alimentos e análise das suas distribuições em relação aos macronutrientes.
 - Gráfico de barras mostrando a adequação da refeição montada em relação ao plano nutricional especificado.
@@ -22,26 +22,24 @@ O processo de desenvolvimento foi feito em conjunto, onde cada um dos integrante
   - Gráfico de barras do consumo de cada tipo de lipídeos.
   - Gráficos de barras de proporção para micronutrientes (minerais e vitaminas).
 
-TALVEZ FALAR COMO CADA VISUALIZAÇÃO FUNCIONA E AS PARTES INTERATIVAS. 
+Uma melhor explicação dos objetivos e funcionamentos das visualizações pode ser visto em [Tutorial](https://fgv-vis-2023.github.io/final-project-nutricaoemumolhar/tutorial.html)
   
-FALAR AQUI SOBRE A DIVISÃO DO TRABALHO.
-
-Todo esse processo demandou bastante tempo dos integrantes e passamos por desafios, necessitando aprender muitas coisas novas, e aprendizados. 
+Em geral, os dois integrantes trabalharam em todas as etapas (visualizações com D3.js, uso do Firebase, página web...), por vezes focando mais em uma. Todo esse processo demandou bastante tempo de ambos, passando por diversos desafios, necessitando aprender muitas coisas novos. 
 
 ### Tópicos das críticas:
 - “Barra de peso poderia ser substituída por uma barra de desenvolvimento que além do peso mostrasse a evolução dos macros e vitaminas do usuário ao longo do tempo”: 
 Alteramos o gráfico de linhas para também mostrar os macronutrientes. Isso realmente nos permite ter mais detalhamento da evolução do peso do usuário com relação a sua alimentação, dado que a quantidade de cada macronutriente ingerida está diretamente ligada às calorias ingeridas que, por sua vez, estão ligadas ao peso do usuário. Entretanto, não colocamos as vitaminas juntas no gráfico de linhas pois a visualização se tornaria muito poluída e acreditamos que isso não traria uma informação tão relevante para o usuário nesse contexto, dessa forma mantivemos apenas a visualização de vitaminas em outra aba, com o percentual para atingir o nível adequado (mínimo) de ingestão de calorias diárias.
 
-- "Seria interessante uma área para adicionar gastos calóricos mesmo que só um número bruto para que possa ser deduzido da alimentação diária”: 
+- "Adicionar gastos calóricos mesmo que só um número bruto para que possa ser deduzido da alimentação diária”: 
 Agora existe um campo para o usuário preencher com sua meta de consumo calórico diário, assim esses valores pode ser alterado de acordo com seus objetivos.
 
-- “Uma ideia interessante seria adicionar as informações do tutorial também em tooltips no preenchimento do usuário, para que caso apareçam dúvidas durante o preenchimento ele possa tirá-las sem ter que trocar de página”: 
+- “Adicionar as informações do tutorial também em tooltips no preenchimento do usuário, para que caso apareçam dúvidas durante o preenchimento ele possa tirá-las sem ter que trocar de página”: 
 As tooltips foram inseridas em elementos HTML com a função de hover para caso o usuário tenha dúvidas em cada parte da ferramenta.
 
-- “Sugiro haver um modo de navegação anônima, sem registro, onde não guarde o histórico da pessoa, mas ela possa explorar o site.”:
+- “Modo de navegação anônima, sem registro, onde não guarde o histórico da pessoa, mas ela possa explorar o site.”:
 O modo de navegação anônima acabaria por impedir de utilizarmos grande parte da ferramenta, então preferimos não criá-lo. Entretanto, não há verificação de e-mail para se cadastrar no site, logo é possível se cadastrar com um e-mail falso gerado aleatoriamente, o que pode gerar a experiência de navegação anônima (dado que seus dados não serão associados a sua conta e sim a uma conta fictícia). Devemos lembrar também que um modo de navegação anônima só significaria que você não precisa fazer um cadastro e também não precisa se identificar, mas não implica no site não salvar dados, logo acreditamos que isso atende às necessidades desse pedido.
 
-- “Referente a visualização por dia: acho que seria legal não ter os "verdes" e "vermelhos" na barra de baixo - uma pessoa que ficou uma semana fora da dieta e teve muitos vermelhos pode acabar ficando ainda mais desmotivada vendo toda aquela quantidade de vermelhos gritantes. Também acho que o range do verde no gráfico das três barras poderia ser de outra cor, pelo mesmo motivo acima.”: 
+- “Referente a visualização por dia: não ter os "verdes" e "vermelhos" na barra de baixo - uma pessoa que ficou uma semana fora da dieta e teve muitos vermelhos pode acabar ficando ainda mais desmotivada vendo toda aquela quantidade de vermelhos gritantes. Range do verde no gráfico das três barras poderia ser de outra cor, pelo mesmo motivo acima.”: 
 Nós estamos representando os dados dessa forma pois foi a que melhor conseguimos para que o usuário recuperasse a informação da adequação de suas refeições. Nosso objetivo é manter o usuário informado. Esperamos que ao ver que ele não está se alimentando corretamente o usuário se sinta incentivado a mudar seus hábitos alimentares, e não que isso desincentive-o, mas não podemos controlar de forma específica esse tipo de reação psicológica de cada usuário. De toda forma, acreditamos que remover informação não tem como gerar mais incentivo, pois assim o usuário passa a desconhecer o problema que há.
 Além disso, acreditamos que o range verde ajuda ao usuário notar a adequação dos macronutrientes, até mesmo porque estamos utilizando essa cor para representar adequação em basicamente todas as partes da ferramenta, quando necessário. A escolha dessas cores se deu pelo contexto, é comum ser utilizado vermelho para excesso, amarelo para escassez e verde para adequado (no nosso país e nesse contexto), então não queremos inserir um novo padrão para que o usuário precise se adaptar a ele.
 
@@ -64,12 +62,13 @@ Para o nosso objetivo, de mostrar a adequação da alimentação do usuário, ac
 
 - Também surgiram algumas críticas em relação ao violin plot, citando a falta de relação de um mesmo ponto nas diferentes colunas e a questão da base dos gráficos estarem 'encostando': Esse problemas foram resolvidos e o gráfico de violino foi quase todo reformulado para que se tornasse uma visualização mais adequada e suportasse todos os alimentos da nossa base de dados.
 
-Comentários e sugestões que não foram implementados por fugirem do escopo (por não se tratarem diretamente de visualização), de forma que não eram prioridade para o nosso resultado final:
+Comentários e sugestões que não foram implementados por fugirem do escopo (por não se tratarem diretamente de visualização) e por não sermos especialistas para fornecesrmos tais tipos de informações, de forma que não eram prioridade para o nosso resultado final:
 - “Uma adição: Uma grande parte dos usuários não entra no site com uma dieta definida em mente, e não tem tempo, conhecimento ou paciência para descobrir qual melhor se encaixa às suas necessidades. Ainda assim, essas pessoas têm interesse em melhorar sua saúde através de uma nutrição mais saudável. A minha recomendação é criar um algoritmo simples capaz de recomendar uma dieta padrão baseada nos objetivos do usuário. Isto é, se alguém almeja perder peso, fazer uma recomendação de um conjunto de alimentos de baixa gordura.”
 
 - “Permitir que o usuário adicione uma lista de ingredientes e retorne uma outra lista de refeições que poderiam ser feitas ordenadas pelas necessidades de macronutrientes/calorias restantes diárias.”
 
 ### Links importantes
-* [Notebook observable]()
-* [Página do projeto final]()
+* [Notebook observable](https://observablehq.com/d/dda5ba56ef8ee385)
+* [Página do projeto final](https://fgv-vis-2023.github.io/final-project-nutricaoemumolhar/)
+* [Paper](https://github.com/fgv-vis-2023/final-project-nutricaoemumolhar/blob/main/FinalPaper.pdf)
 * [Links do MVP]()
