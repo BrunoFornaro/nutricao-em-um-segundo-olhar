@@ -71,4 +71,4 @@ Comentários e sugestões que não foram implementados por fugirem do escopo (po
 * [Notebook observable](https://observablehq.com/d/dda5ba56ef8ee385)
 * [Página do projeto final](https://fgv-vis-2023.github.io/final-project-nutricaoemumolhar/)
 * [Paper](https://github.com/fgv-vis-2023/final-project-nutricaoemumolhar/blob/main/FinalPaper.pdf)
-* [Links do MVP]()
+* [Vídeo de teaser](https://clipchamp.com/watch/enshdXXbVtI)
