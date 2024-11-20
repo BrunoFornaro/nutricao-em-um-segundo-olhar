@@ -10,36 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: github-pages
     steps:
-      # 1. Checkout do código do repositório
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      # 2. Configurar versão do Node.js (Node.js 20)
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      # 3. Instalar dependências
-      - name: Install dependencies
-        run: npm install
-
       # 4. Geração do arquivo env.js com as variáveis de ambiente
       - name: Set environment variables
         run: |
           echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" > ./env.js
-
-      # 5. Construir o projeto
-      - name: Build project
-        run: npm run build
-
-      # 6. Configurar o diretório correto para o deploy
-      - name: Prepare deployment
-        run: mv build/* dist/ || true
-
-      # 7. Fazer o deploy para o GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: dist
-
