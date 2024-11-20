@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: github-pages
     steps:
       - name: Set environment variable
         run: echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" >> env.js
