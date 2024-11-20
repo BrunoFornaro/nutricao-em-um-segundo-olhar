@@ -10,5 +10,37 @@ jobs:
     runs-on: ubuntu-latest
     environment: github-pages
     steps:
-      - name: Set environment variable
-        run: echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" >> env.js
+      # 1. Checkout do código do repositório
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. Instalação de dependências
+      - name: Install dependencies
+        run: |
+          npm install
+
+      # 3. Geração do arquivo env.js com as variáveis de ambiente
+      - name: Set environment variables
+        run: |
+          echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" > ./dist/env.js
+
+      # 4. Construção do projeto (ajuste o comando conforme seu framework)
+      - name: Build project
+        run: npm run build
+
+      # 5. Configurar o diretório correto para o deploy
+      - name: Prepare deployment
+        run: mv build/* dist/ || true
+
+      # 6. Fazer o deploy para o GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
