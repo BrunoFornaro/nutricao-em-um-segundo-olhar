@@ -1,0 +1,13 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variable
+        run: echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" >> env.js
