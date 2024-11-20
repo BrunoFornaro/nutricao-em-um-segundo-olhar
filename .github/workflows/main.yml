@@ -12,27 +12,33 @@ jobs:
     steps:
       # 1. Checkout do código do repositório
       - name: Check out code
-        uses: JamesIves/github-pages-deploy-action@4.0.0
+        uses: actions/checkout@v3
 
-      # 2. Instalação de dependências
+      # 2. Configurar versão do Node.js (Node.js 20)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3. Instalar dependências
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
-      # 3. Geração do arquivo env.js com as variáveis de ambiente
+      # 4. Geração do arquivo env.js com as variáveis de ambiente
       - name: Set environment variables
         run: |
+          mkdir -p dist
           echo "export const SUPABASE_URL='${{ secrets.SUPABASE_URL }}'; export const SUPABASE_KEY='${{ secrets.SUPABASE_KEY }}';" > ./dist/env.js
 
-      # 4. Construção do projeto (ajuste o comando conforme seu framework)
+      # 5. Construir o projeto
       - name: Build project
         run: npm run build
 
-      # 5. Configurar o diretório correto para o deploy
+      # 6. Configurar o diretório correto para o deploy
       - name: Prepare deployment
         run: mv build/* dist/ || true
 
-      # 6. Fazer o deploy para o GitHub Pages
+      # 7. Fazer o deploy para o GitHub Pages
       - name: Deploy to GitHub Pages
         uses: actions/upload-pages-artifact@v1
         with:
